@@ -78,7 +78,11 @@ const Index = () => {
       setHasError(false);
       const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
       const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`, {
+        headers: {
+          'Origin': 'http://localhost:8080'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -126,7 +130,11 @@ const Index = () => {
       setHasError(false);
       const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
       const targetUrl = `https://bestsimilar.com${url}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`, {
+        headers: {
+          'Origin': 'http://localhost:8080'
+        }
+      });
       
       if (response.ok) {
         const html = await response.text();
