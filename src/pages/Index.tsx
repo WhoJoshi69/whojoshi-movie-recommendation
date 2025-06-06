@@ -1,11 +1,300 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Search, Movie, Tv } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface AutocompleteItem {
+  id: string;
+  label: string;
+  url: string;
+  serial?: string;
+}
+
+interface AutocompleteResponse {
+  movie?: AutocompleteItem[];
+  tv?: AutocompleteItem[];
+}
+
+interface MovieData {
+  id: string;
+  title: string;
+  poster: string;
+  year?: string;
+  type: 'movie' | 'tv';
+}
 
 const Index = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [suggestions, setSuggestions] = useState<AutocompleteResponse>({});
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedMovies, setSelectedMovies] = useState<MovieData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Debounced search function
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm.trim().length > 1) {
+        fetchSuggestions(searchTerm);
+      } else {
+        setSuggestions({});
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const fetchSuggestions = async (term: string) => {
+    try {
+      const response = await fetch(`https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`);
+      const data = await response.json();
+      setSuggestions(data);
+      setShowSuggestions(true);
+      setSelectedIndex(-1);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      setSuggestions({});
+      setShowSuggestions(false);
+    }
+  };
+
+  const fetchMovieRecommendations = async (url: string, selectedItem: AutocompleteItem) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://bestsimilar.com${url}`);
+      const html = await response.text();
+      
+      // Parse HTML to extract movie data
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const movieElements = doc.querySelectorAll('.column-img');
+      
+      const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
+        const img = element.querySelector('img');
+        const imgSrc = img?.getAttribute('src') || '';
+        const imgAlt = img?.getAttribute('alt') || '';
+        const dataId = img?.getAttribute('data-id') || index.toString();
+        
+        // Extract year from alt text
+        const yearMatch = imgAlt.match(/\((\d{4})\)/);
+        const year = yearMatch ? yearMatch[1] : '';
+        
+        return {
+          id: dataId,
+          title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
+          poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
+          year,
+          type: selectedItem.serial === "1" ? 'tv' : 'movie'
+        };
+      }).filter(movie => movie.poster && movie.title);
+
+      setSelectedMovies(movies.slice(0, 24)); // Limit to 24 items
+    } catch (error) {
+      console.error("Error fetching movie recommendations:", error);
+      setSelectedMovies([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = (item?: AutocompleteItem) => {
+    if (item) {
+      fetchMovieRecommendations(item.url, item);
+      setSearchTerm(item.label);
+      setShowSuggestions(false);
+    } else {
+      // Handle enter key on input
+      const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+      if (allSuggestions.length > 0) {
+        const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
+        fetchMovieRecommendations(selectedItem.url, selectedItem);
+        setSearchTerm(selectedItem.label);
+        setShowSuggestions(false);
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % allSuggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev <= 0 ? allSuggestions.length - 1 : prev - 1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setSelectedIndex(-1);
+    }
+  };
+
+  // Auto-scroll selected suggestion into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && suggestionRefs.current[selectedIndex]) {
+      suggestionRefs.current[selectedIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      });
+    }
+  }, [selectedIndex]);
+
+  const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              CineSearch
+            </h1>
+            <p className="text-gray-400">Discover your next favorite movie or TV show</p>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="relative max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                ref={searchRef}
+                type="text"
+                placeholder="Search for movies or TV shows..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => searchTerm.length > 1 && setShowSuggestions(true)}
+                className="pl-12 pr-4 py-6 text-lg bg-gray-900/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+              />
+            </div>
+            
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && allSuggestions.length > 0 && (
+              <Card className="absolute top-full mt-2 w-full bg-gray-900/95 backdrop-blur-md border-gray-700 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-10">
+                <div className="p-2">
+                  {suggestions.movie && suggestions.movie.length > 0 && (
+                    <div className="mb-2">
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 font-medium">
+                        <Movie className="w-4 h-4" />
+                        Movies
+                      </div>
+                      {suggestions.movie.map((item, index) => (
+                        <div
+                          key={`movie-${item.id}`}
+                          ref={el => suggestionRefs.current[index] = el}
+                          className={cn(
+                            "px-3 py-3 cursor-pointer rounded-lg transition-all duration-200",
+                            selectedIndex === index 
+                              ? "bg-blue-600/20 border border-blue-500/30" 
+                              : "hover:bg-gray-800/50"
+                          )}
+                          onClick={() => handleSearch(item)}
+                        >
+                          <div className="text-white font-medium">{item.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {suggestions.tv && suggestions.tv.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 font-medium">
+                        <Tv className="w-4 h-4" />
+                        TV Shows
+                      </div>
+                      {suggestions.tv.map((item, index) => {
+                        const globalIndex = (suggestions.movie?.length || 0) + index;
+                        return (
+                          <div
+                            key={`tv-${item.id}`}
+                            ref={el => suggestionRefs.current[globalIndex] = el}
+                            className={cn(
+                              "px-3 py-3 cursor-pointer rounded-lg transition-all duration-200",
+                              selectedIndex === globalIndex 
+                                ? "bg-blue-600/20 border border-blue-500/30" 
+                                : "hover:bg-gray-800/50"
+                            )}
+                            onClick={() => handleSearch(item)}
+                          >
+                            <div className="text-white font-medium">{item.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {Array.from({ length: 24 }).map((_, index) => (
+              <div key={index} className="aspect-[2/3] bg-gray-800 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : selectedMovies.length > 0 ? (
+          <>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Recommended {selectedMovies[0]?.type === 'tv' ? 'TV Shows' : 'Movies'}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              {selectedMovies.map((movie, index) => (
+                <div
+                  key={`${movie.id}-${index}`}
+                  className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                >
+                  <div className="aspect-[2/3] bg-gray-800 rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                    {movie.poster ? (
+                      <img
+                        src={movie.poster}
+                        alt={movie.title}
+                        className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-500">
+                        <Movie className="w-12 h-12" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 px-1">
+                    <h3 className="text-sm font-medium text-white line-clamp-2 group-hover:text-blue-400 transition-colors duration-200">
+                      {movie.title}
+                    </h3>
+                    {movie.year && (
+                      <p className="text-xs text-gray-400 mt-1">{movie.year}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-20">
+            <Movie className="w-24 h-24 text-gray-600 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-gray-400 mb-4">Start Your Discovery</h2>
+            <p className="text-gray-500 max-w-md mx-auto">
+              Search for any movie or TV show to get personalized recommendations and discover your next favorite watch.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
