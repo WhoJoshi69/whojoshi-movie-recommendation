@@ -76,39 +76,20 @@ const Index = () => {
   const fetchSuggestions = async (term: string) => {
     try {
       setHasError(false);
-      // Try multiple CORS proxy services
-      const proxies = [
-        'https://api.allorigins.win/raw?url=',
-        'https://cors-anywhere.herokuapp.com/',
-        'https://thingproxy.freeboard.io/fetch/'
-      ];
+      const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+      const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
       
-      let lastError;
-      for (const proxyUrl of proxies) {
-        try {
-          const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
-          const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-          
-          if (response.ok) {
-            let data;
-            if (proxyUrl.includes('allorigins.win')) {
-              data = await response.json();
-            } else {
-              data = await response.json();
-            }
-            setSuggestions(data);
-            const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
-            setShowSuggestions(hasResults);
-            setSelectedIndex(-1);
-            return;
-          }
-        } catch (error) {
-          lastError = error;
-          console.log(`Proxy ${proxyUrl} failed, trying next...`);
-        }
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestions(data);
+        const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
+        setShowSuggestions(hasResults);
+        setSelectedIndex(-1);
+        return;
       }
       
-      throw lastError;
+      throw new Error('Failed to fetch suggestions');
     } catch (error) {
       console.error("Error fetching suggestions:", error);
       setHasError(true);
@@ -143,74 +124,54 @@ const Index = () => {
     setIsLoading(true);
     try {
       setHasError(false);
-      // Try multiple CORS proxy services
-      const proxies = [
-        'https://api.allorigins.win/get?url=',
-        'https://cors-anywhere.herokuapp.com/',
-        'https://thingproxy.freeboard.io/fetch/'
-      ];
+      const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+      const targetUrl = `https://bestsimilar.com${url}`;
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
       
-      let lastError;
-      for (const proxyUrl of proxies) {
-        try {
-          const targetUrl = `https://bestsimilar.com${url}`;
-          const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      if (response.ok) {
+        const html = await response.text();
+        
+        // Parse HTML to extract movie data
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const movieElements = doc.querySelectorAll('.column-img');
+        
+        const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
+          const img = element.querySelector('img');
+          const imgSrc = img?.getAttribute('src') || '';
+          const imgAlt = img?.getAttribute('alt') || '';
+          const dataId = img?.getAttribute('data-id') || index.toString();
           
-          if (response.ok) {
-            let html;
-            if (proxyUrl.includes('allorigins.win')) {
-              const proxyData = await response.json();
-              html = proxyData.contents;
-            } else {
-              html = await response.text();
-            }
-            
-            // Parse HTML to extract movie data
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const movieElements = doc.querySelectorAll('.column-img');
-            
-            const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
-              const img = element.querySelector('img');
-              const imgSrc = img?.getAttribute('src') || '';
-              const imgAlt = img?.getAttribute('alt') || '';
-              const dataId = img?.getAttribute('data-id') || index.toString();
-              
-              // Extract year from alt text
-              const yearMatch = imgAlt.match(/\((\d{4})\)/);
-              const year = yearMatch ? yearMatch[1] : '';
-              
-              // Check for TV show indicator in the same container or nearby elements
-              const container = element.closest('.column') || element.parentElement;
-              const tvShowLabel = container?.querySelector('span.label.label-default');
-              const isTvShow = tvShowLabel?.textContent?.trim() === 'TV show';
-              
-              return {
-                id: dataId,
-                title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
-                poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
-                year,
-                type: isTvShow ? 'tv' as const : 'movie' as const
-              };
-            }).filter(movie => movie.poster && movie.title);
+          // Extract year from alt text
+          const yearMatch = imgAlt.match(/\((\d{4})\)/);
+          const year = yearMatch ? yearMatch[1] : '';
+          
+          // Check for TV show indicator in the same container or nearby elements
+          const container = element.closest('.column') || element.parentElement;
+          const tvShowLabel = container?.querySelector('span.label.label-default');
+          const isTvShow = tvShowLabel?.textContent?.trim() === 'TV show';
+          
+          return {
+            id: dataId,
+            title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
+            poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
+            year,
+            type: isTvShow ? 'tv' as const : 'movie' as const
+          };
+        }).filter(movie => movie.poster && movie.title);
 
-            // Separate movies and TV shows
-            const moviesList = movies.filter(item => item.type === 'movie');
-            const tvShowsList = movies.filter(item => item.type === 'tv');
-            
-            // Combine them with movies first, then TV shows
-            const combinedList = [...moviesList, ...tvShowsList];
-            
-            setSelectedMovies(combinedList.slice(0, 24)); // Limit to 24 items
-            return;
-          }
-        } catch (error) {
-          lastError = error;
-          console.log(`Proxy ${proxyUrl} failed for recommendations, trying next...`);
-        }
+        // Separate movies and TV shows
+        const moviesList = movies.filter(item => item.type === 'movie');
+        const tvShowsList = movies.filter(item => item.type === 'tv');
+        
+        // Combine them with movies first, then TV shows
+        const combinedList = [...moviesList, ...tvShowsList];
+        
+        setSelectedMovies(combinedList.slice(0, 24)); // Limit to 24 items
+        return;
       }
       
-      throw lastError;
+      throw new Error('Failed to fetch recommendations');
     } catch (error) {
       console.error("Error fetching movie recommendations:", error);
       setHasError(true);
