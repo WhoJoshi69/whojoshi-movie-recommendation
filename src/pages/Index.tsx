@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Search, Film, Tv, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { API_ENDPOINTS } from "@/lib/api";
 
 interface AutocompleteItem {
   id: string;
@@ -76,7 +77,7 @@ const Index = () => {
   const fetchSuggestions = async (term: string) => {
     try {
       setHasError(false);
-      const response = await fetch(`http://localhost:3001/api/suggestions?term=${encodeURIComponent(term)}`);
+      const response = await fetch(`${API_ENDPOINTS.suggestions}?term=${encodeURIComponent(term)}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -122,7 +123,7 @@ const Index = () => {
     setIsLoading(true);
     try {
       setHasError(false);
-      const response = await fetch(`http://localhost:3001/api/recommendations?url=${encodeURIComponent(url)}`);
+      const response = await fetch(`${API_ENDPOINTS.recommendations}?url=${encodeURIComponent(url)}`);
       
       if (response.ok) {
         const html = await response.text();

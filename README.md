@@ -29,11 +29,32 @@ cd shadow-cinema-search
 npm install
 ```
 
+### Environment Configuration
+
+The application uses environment variables to configure API endpoints:
+
+1. **Development**: Uses `.env` file with `VITE_API_BASE_URL=http://localhost:3001`
+2. **Production**: Uses `.env.production` file or environment variables
+
+#### Setting up for Production
+
+1. Create a `.env.production` file or set environment variables:
+```bash
+VITE_API_BASE_URL=https://your-domain.com
+```
+
+2. Or if your API is served from the same domain, leave it empty:
+```bash
+VITE_API_BASE_URL=
+```
+
 ### Running the Application
+
+#### Development
 
 You have two options to run the application:
 
-#### Option 1: Run both server and client together (Recommended)
+**Option 1: Run both server and client together (Recommended)**
 ```bash
 npm run dev:full
 ```
@@ -42,7 +63,7 @@ This will start:
 - Proxy server on `http://localhost:3001`
 - React development server on `http://localhost:5173`
 
-#### Option 2: Run server and client separately
+**Option 2: Run server and client separately**
 
 1. Start the proxy server:
 ```bash
@@ -52,6 +73,45 @@ npm run server
 2. In a new terminal, start the React development server:
 ```bash
 npm run dev
+```
+
+#### Production
+
+1. Build the application:
+```bash
+npm run build
+```
+
+2. Deploy both the built React app and the Express server to your hosting platform.
+
+### Deployment Examples
+
+#### Option 1: Same Domain Deployment (Recommended)
+Deploy both frontend and backend to the same domain:
+- Frontend: `https://your-domain.com`
+- Backend: `https://your-domain.com/api/*`
+
+Set `VITE_API_BASE_URL=` (empty) in production environment.
+
+#### Option 2: Separate Domain Deployment
+Deploy frontend and backend to different domains:
+- Frontend: `https://your-app.com`
+- Backend: `https://api.your-app.com`
+
+Set `VITE_API_BASE_URL=https://api.your-app.com` in production environment.
+
+#### Popular Hosting Platforms
+
+**Vercel/Netlify (Frontend) + Railway/Render (Backend)**
+```bash
+# Frontend environment variable
+VITE_API_BASE_URL=https://your-backend.railway.app
+```
+
+**Single Platform (e.g., Railway, Render)**
+```bash
+# If serving from same domain
+VITE_API_BASE_URL=
 ```
 
 ### API Endpoints
