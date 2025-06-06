@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# Shadow Cinema Search
 
-## Project info
+A movie and TV show recommendation application that helps you discover your next favorite watch.
 
-**URL**: https://lovable.dev/projects/7027b023-e610-4a29-b2e2-b64512a7477f
+## Features
 
-## How can I edit this code?
+- Search for movies and TV shows
+- Get personalized recommendations
+- Separate sections for movies and TV shows
+- Clean, modern UI with dark/light theme support
 
-There are several ways of editing your application.
+## Setup and Installation
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7027b023-e610-4a29-b2e2-b64512a7477f) and start prompting.
+- Node.js (version 16 or higher)
+- npm or yarn
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd shadow-cinema-search
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Install dependencies:
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Running the Application
 
-Follow these steps:
+You have two options to run the application:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+#### Option 1: Run both server and client together (Recommended)
+```bash
+npm run dev:full
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+This will start:
+- Proxy server on `http://localhost:3001`
+- React development server on `http://localhost:5173`
 
-# Step 3: Install the necessary dependencies.
-npm i
+#### Option 2: Run server and client separately
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. Start the proxy server:
+```bash
+npm run server
+```
+
+2. In a new terminal, start the React development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### API Endpoints
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The proxy server provides the following endpoints:
 
-**Use GitHub Codespaces**
+- `GET /api/suggestions?term=<search_term>` - Get autocomplete suggestions
+- `GET /api/recommendations?url=<movie_url>` - Get movie/TV show recommendations
+- `GET /health` - Health check endpoint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Building for Production
 
-## What technologies are used for this project?
+```bash
+npm run build
+```
 
-This project is built with:
+### Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+├── src/
+│   ├── components/ui/     # Reusable UI components
+│   ├── pages/            # Page components
+│   ├── lib/              # Utility functions
+│   └── hooks/            # Custom React hooks
+├── server.js             # Express proxy server
+├── public/               # Static assets
+└── package.json          # Project dependencies and scripts
+```
 
-## How can I deploy this project?
+### Technologies Used
 
-Simply open [Lovable](https://lovable.dev/projects/7027b023-e610-4a29-b2e2-b64512a7477f) and click on Share -> Publish.
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Backend**: Node.js, Express.js
+- **Styling**: Tailwind CSS with custom components
+- **Icons**: Lucide React
 
-## Can I connect a custom domain to my Lovable project?
+### How It Works
 
-Yes, you can!
+1. The React frontend sends requests to the local Express proxy server
+2. The proxy server forwards requests to the bestsimilar.com API
+3. The proxy handles CORS issues and returns data to the frontend
+4. The frontend parses the response and displays movies/TV shows in separate sections
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Development Notes
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- The proxy server runs on port 3001
+- The React development server runs on port 5173
+- The application automatically detects TV shows vs movies using HTML parsing
+- Mock data is shown when the API is unavailable

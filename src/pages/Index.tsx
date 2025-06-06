@@ -76,13 +76,7 @@ const Index = () => {
   const fetchSuggestions = async (term: string) => {
     try {
       setHasError(false);
-      const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-      const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`, {
-        headers: {
-          'Origin': 'http://localhost:8080'
-        }
-      });
+      const response = await fetch(`http://localhost:3001/api/suggestions?term=${encodeURIComponent(term)}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -128,13 +122,7 @@ const Index = () => {
     setIsLoading(true);
     try {
       setHasError(false);
-      const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-      const targetUrl = `https://bestsimilar.com${url}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`, {
-        headers: {
-          'Origin': 'http://localhost:8080'
-        }
-      });
+      const response = await fetch(`http://localhost:3001/api/recommendations?url=${encodeURIComponent(url)}`);
       
       if (response.ok) {
         const html = await response.text();
