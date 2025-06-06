@@ -51,8 +51,12 @@ const Index = () => {
 
   const fetchSuggestions = async (term: string) => {
     try {
-      const response = await fetch(`https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`);
-      const data = await response.json();
+      // Using a CORS proxy to bypass CORS restrictions
+      const proxyUrl = 'https://api.allorigins.win/get?url=';
+      const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      const proxyData = await response.json();
+      const data = JSON.parse(proxyData.contents);
       setSuggestions(data);
       setShowSuggestions(true);
       setSelectedIndex(-1);
@@ -66,8 +70,12 @@ const Index = () => {
   const fetchMovieRecommendations = async (url: string, selectedItem: AutocompleteItem) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://bestsimilar.com${url}`);
-      const html = await response.text();
+      // Using a CORS proxy to bypass CORS restrictions
+      const proxyUrl = 'https://api.allorigins.win/get?url=';
+      const targetUrl = `https://bestsimilar.com${url}`;
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      const proxyData = await response.json();
+      const html = proxyData.contents;
       
       // Parse HTML to extract movie data
       const parser = new DOMParser();
