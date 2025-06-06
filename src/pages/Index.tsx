@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, Film, Tv, AlertCircle } from "lucide-react";
@@ -35,7 +35,28 @@ const Index = () => {
   const [hasError, setHasError] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Debounced search function
   useEffect(() => {
@@ -45,6 +66,7 @@ const Index = () => {
       } else {
         setSuggestions({});
         setShowSuggestions(false);
+        setSelectedIndex(-1);
       }
     }, 300);
 
@@ -75,7 +97,8 @@ const Index = () => {
               data = await response.json();
             }
             setSuggestions(data);
-            setShowSuggestions(true);
+            const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
+            setShowSuggestions(hasResults);
             setSelectedIndex(-1);
             return;
           }
@@ -105,7 +128,8 @@ const Index = () => {
       
       if (term.toLowerCase().includes('wonder')) {
         setSuggestions(mockSuggestions);
-        setShowSuggestions(true);
+        const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0);
+        setShowSuggestions(hasResults);
         toast({
           title: "Demo Mode",
           description: "Showing sample results due to API limitations",
@@ -222,40 +246,66 @@ const Index = () => {
     }
   };
 
-  const handleSearch = (item?: AutocompleteItem) => {
+  const handleSearch = useCallback((item?: AutocompleteItem) => {
     if (item) {
+      // Direct item selection (click)
       fetchMovieRecommendations(item.url, item);
       setSearchTerm(item.label);
       setShowSuggestions(false);
+      setSelectedIndex(-1);
+      // Remove focus from input to prevent dropdown from reopening
+      searchRef.current?.blur();
     } else {
       // Handle enter key on input
       const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
-      if (allSuggestions.length > 0) {
+      if (allSuggestions.length > 0 && showSuggestions) {
         const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
         fetchMovieRecommendations(selectedItem.url, selectedItem);
         setSearchTerm(selectedItem.label);
         setShowSuggestions(false);
+        setSelectedIndex(-1);
+        // Remove focus from input to prevent dropdown from reopening
+        searchRef.current?.blur();
       }
     }
-  };
+  }, [suggestions, selectedIndex, showSuggestions]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+    
+    if (!showSuggestions || allSuggestions.length === 0) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        // If no suggestions are shown, don't do anything
+        return;
+      }
+      return;
+    }
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % allSuggestions.length);
+      setSelectedIndex(prev => {
+        const newIndex = prev < 0 ? 0 : (prev + 1) % allSuggestions.length;
+        return newIndex;
+      });
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => prev <= 0 ? allSuggestions.length - 1 : prev - 1);
+      setSelectedIndex(prev => {
+        if (prev <= 0) {
+          return allSuggestions.length - 1;
+        }
+        return prev - 1;
+      });
     } else if (e.key === 'Enter') {
       e.preventDefault();
       handleSearch();
     } else if (e.key === 'Escape') {
+      e.preventDefault();
       setShowSuggestions(false);
       setSelectedIndex(-1);
+      searchRef.current?.blur();
     }
-  };
+  }, [suggestions, showSuggestions, handleSearch]);
 
   // Auto-scroll selected suggestion into view
   useEffect(() => {
@@ -276,7 +326,7 @@ const Index = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-              CineSearch
+              WhoJoshi Recommendations
             </h1>
             <p className="text-muted-foreground">Discover your next favorite movie or TV show</p>
           </div>
@@ -292,7 +342,11 @@ const Index = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={() => searchTerm.length > 1 && setShowSuggestions(true)}
+                onFocus={() => {
+                  if (searchTerm.length > 1 && Object.keys(suggestions).length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 className="pl-12 pr-4 py-6 text-lg bg-card border-border focus:border-primary focus:ring-primary/20 rounded-xl"
               />
             </div>
@@ -309,7 +363,10 @@ const Index = () => {
             
             {/* Autocomplete Suggestions */}
             {showSuggestions && allSuggestions.length > 0 && (
-              <Card className="absolute top-full mt-2 w-full bg-card/95 backdrop-blur-md border-border rounded-xl shadow-2xl max-h-96 overflow-y-auto z-10">
+              <Card 
+                ref={dropdownRef}
+                className="absolute top-full mt-2 w-full bg-card/95 backdrop-blur-md border-border rounded-xl shadow-2xl max-h-96 overflow-y-auto z-10"
+              >
                 <div className="p-2">
                   {suggestions.movie && suggestions.movie.length > 0 && (
                     <div className="mb-2">
