@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, Film, Tv } from "lucide-react";
+import { Search, Film, Tv, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AutocompleteItem {
   id: string;
@@ -31,8 +32,10 @@ const Index = () => {
   const [selectedMovies, setSelectedMovies] = useState<MovieData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [hasError, setHasError] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const { toast } = useToast();
 
   // Debounced search function
   useEffect(() => {
@@ -50,58 +53,170 @@ const Index = () => {
 
   const fetchSuggestions = async (term: string) => {
     try {
-      // Using corsproxy.io as an alternative CORS proxy
-      const proxyUrl = 'https://corsproxy.io/?';
-      const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-      const data = await response.json();
-      setSuggestions(data);
-      setShowSuggestions(true);
-      setSelectedIndex(-1);
+      setHasError(false);
+      // Try multiple CORS proxy services
+      const proxies = [
+        'https://api.allorigins.win/raw?url=',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/'
+      ];
+      
+      let lastError;
+      for (const proxyUrl of proxies) {
+        try {
+          const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
+          const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+          
+          if (response.ok) {
+            let data;
+            if (proxyUrl.includes('allorigins.win')) {
+              data = await response.json();
+            } else {
+              data = await response.json();
+            }
+            setSuggestions(data);
+            setShowSuggestions(true);
+            setSelectedIndex(-1);
+            return;
+          }
+        } catch (error) {
+          lastError = error;
+          console.log(`Proxy ${proxyUrl} failed, trying next...`);
+        }
+      }
+      
+      throw lastError;
     } catch (error) {
       console.error("Error fetching suggestions:", error);
+      setHasError(true);
       setSuggestions({});
       setShowSuggestions(false);
+      
+      // Show mock suggestions for demonstration
+      const mockSuggestions = {
+        movie: [
+          { id: "1", label: "Wonder Woman (2017)", url: "/movies/38910-wonder-woman" },
+          { id: "2", label: "Wonder Woman 1984 (2020)", url: "/movies/464052-wonder-woman-1984" }
+        ],
+        tv: [
+          { id: "3", label: "Wonder Years (1988)", url: "/tv/1695-the-wonder-years", serial: "1" }
+        ]
+      };
+      
+      if (term.toLowerCase().includes('wonder')) {
+        setSuggestions(mockSuggestions);
+        setShowSuggestions(true);
+        toast({
+          title: "Demo Mode",
+          description: "Showing sample results due to API limitations",
+          variant: "default",
+        });
+      }
     }
   };
 
   const fetchMovieRecommendations = async (url: string, selectedItem: AutocompleteItem) => {
     setIsLoading(true);
     try {
-      // Using corsproxy.io as an alternative CORS proxy
-      const proxyUrl = 'https://corsproxy.io/?';
-      const targetUrl = `https://bestsimilar.com${url}`;
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-      const html = await response.text();
+      setHasError(false);
+      // Try multiple CORS proxy services
+      const proxies = [
+        'https://api.allorigins.win/get?url=',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/'
+      ];
       
-      // Parse HTML to extract movie data
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const movieElements = doc.querySelectorAll('.column-img');
-      
-      const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
-        const img = element.querySelector('img');
-        const imgSrc = img?.getAttribute('src') || '';
-        const imgAlt = img?.getAttribute('alt') || '';
-        const dataId = img?.getAttribute('data-id') || index.toString();
-        
-        // Extract year from alt text
-        const yearMatch = imgAlt.match(/\((\d{4})\)/);
-        const year = yearMatch ? yearMatch[1] : '';
-        
-        return {
-          id: dataId,
-          title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
-          poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
-          year,
-          type: selectedItem.serial === "1" ? 'tv' as const : 'movie' as const
-        };
-      }).filter(movie => movie.poster && movie.title);
+      let lastError;
+      for (const proxyUrl of proxies) {
+        try {
+          const targetUrl = `https://bestsimilar.com${url}`;
+          const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+          
+          if (response.ok) {
+            let html;
+            if (proxyUrl.includes('allorigins.win')) {
+              const proxyData = await response.json();
+              html = proxyData.contents;
+            } else {
+              html = await response.text();
+            }
+            
+            // Parse HTML to extract movie data
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const movieElements = doc.querySelectorAll('.column-img');
+            
+            const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
+              const img = element.querySelector('img');
+              const imgSrc = img?.getAttribute('src') || '';
+              const imgAlt = img?.getAttribute('alt') || '';
+              const dataId = img?.getAttribute('data-id') || index.toString();
+              
+              // Extract year from alt text
+              const yearMatch = imgAlt.match(/\((\d{4})\)/);
+              const year = yearMatch ? yearMatch[1] : '';
+              
+              return {
+                id: dataId,
+                title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
+                poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
+                year,
+                type: selectedItem.serial === "1" ? 'tv' as const : 'movie' as const
+              };
+            }).filter(movie => movie.poster && movie.title);
 
-      setSelectedMovies(movies.slice(0, 24)); // Limit to 24 items
+            setSelectedMovies(movies.slice(0, 24)); // Limit to 24 items
+            return;
+          }
+        } catch (error) {
+          lastError = error;
+          console.log(`Proxy ${proxyUrl} failed for recommendations, trying next...`);
+        }
+      }
+      
+      throw lastError;
     } catch (error) {
       console.error("Error fetching movie recommendations:", error);
-      setSelectedMovies([]);
+      setHasError(true);
+      
+      // Show mock movie data for demonstration
+      const mockMovies: MovieData[] = [
+        {
+          id: "1",
+          title: "Wonder Woman",
+          poster: "/placeholder.svg",
+          year: "2017",
+          type: 'movie'
+        },
+        {
+          id: "2",
+          title: "Wonder Woman 1984",
+          poster: "/placeholder.svg",
+          year: "2020",
+          type: 'movie'
+        },
+        {
+          id: "3",
+          title: "Batman v Superman",
+          poster: "/placeholder.svg",
+          year: "2016",
+          type: 'movie'
+        },
+        {
+          id: "4",
+          title: "Justice League",
+          poster: "/placeholder.svg",
+          year: "2017",
+          type: 'movie'
+        }
+      ];
+      
+      setSelectedMovies(mockMovies);
+      toast({
+        title: "Demo Mode",
+        description: "Showing sample recommendations due to API limitations",
+        variant: "default",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +296,16 @@ const Index = () => {
                 className="pl-12 pr-4 py-6 text-lg bg-card border-border focus:border-primary focus:ring-primary/20 rounded-xl"
               />
             </div>
+            
+            {/* API Status Notice */}
+            {hasError && (
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">Using demo data due to API limitations</span>
+                </div>
+              </div>
+            )}
             
             {/* Autocomplete Suggestions */}
             {showSuggestions && allSuggestions.length > 0 && (
