@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, Movie, Tv } from "lucide-react";
+import { Search, Film, Tv } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AutocompleteItem {
@@ -89,7 +89,7 @@ const Index = () => {
           title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
           poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
           year,
-          type: selectedItem.serial === "1" ? 'tv' : 'movie'
+          type: selectedItem.serial === "1" ? 'tv' as const : 'movie' as const
         };
       }).filter(movie => movie.poster && movie.title);
 
@@ -150,21 +150,21 @@ const Index = () => {
   const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               CineSearch
             </h1>
-            <p className="text-gray-400">Discover your next favorite movie or TV show</p>
+            <p className="text-muted-foreground">Discover your next favorite movie or TV show</p>
           </div>
           
           {/* Search Bar */}
           <div className="relative max-w-2xl mx-auto">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input
                 ref={searchRef}
                 type="text"
@@ -173,18 +173,18 @@ const Index = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => searchTerm.length > 1 && setShowSuggestions(true)}
-                className="pl-12 pr-4 py-6 text-lg bg-gray-900/50 border-gray-700 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                className="pl-12 pr-4 py-6 text-lg bg-card border-border focus:border-primary focus:ring-primary/20 rounded-xl"
               />
             </div>
             
             {/* Autocomplete Suggestions */}
             {showSuggestions && allSuggestions.length > 0 && (
-              <Card className="absolute top-full mt-2 w-full bg-gray-900/95 backdrop-blur-md border-gray-700 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-10">
+              <Card className="absolute top-full mt-2 w-full bg-card/95 backdrop-blur-md border-border rounded-xl shadow-2xl max-h-96 overflow-y-auto z-10">
                 <div className="p-2">
                   {suggestions.movie && suggestions.movie.length > 0 && (
                     <div className="mb-2">
-                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 font-medium">
-                        <Movie className="w-4 h-4" />
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground font-medium">
+                        <Film className="w-4 h-4" />
                         Movies
                       </div>
                       {suggestions.movie.map((item, index) => (
@@ -194,12 +194,12 @@ const Index = () => {
                           className={cn(
                             "px-3 py-3 cursor-pointer rounded-lg transition-all duration-200",
                             selectedIndex === index 
-                              ? "bg-blue-600/20 border border-blue-500/30" 
-                              : "hover:bg-gray-800/50"
+                              ? "bg-primary/20 border border-primary/30" 
+                              : "hover:bg-muted/50"
                           )}
                           onClick={() => handleSearch(item)}
                         >
-                          <div className="text-white font-medium">{item.label}</div>
+                          <div className="text-foreground font-medium">{item.label}</div>
                         </div>
                       ))}
                     </div>
@@ -207,7 +207,7 @@ const Index = () => {
                   
                   {suggestions.tv && suggestions.tv.length > 0 && (
                     <div>
-                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 font-medium">
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground font-medium">
                         <Tv className="w-4 h-4" />
                         TV Shows
                       </div>
@@ -220,12 +220,12 @@ const Index = () => {
                             className={cn(
                               "px-3 py-3 cursor-pointer rounded-lg transition-all duration-200",
                               selectedIndex === globalIndex 
-                                ? "bg-blue-600/20 border border-blue-500/30" 
-                                : "hover:bg-gray-800/50"
+                                ? "bg-primary/20 border border-primary/30" 
+                                : "hover:bg-muted/50"
                             )}
                             onClick={() => handleSearch(item)}
                           >
-                            <div className="text-white font-medium">{item.label}</div>
+                            <div className="text-foreground font-medium">{item.label}</div>
                           </div>
                         );
                       })}
@@ -243,7 +243,7 @@ const Index = () => {
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {Array.from({ length: 24 }).map((_, index) => (
-              <div key={index} className="aspect-[2/3] bg-gray-800 rounded-lg animate-pulse" />
+              <div key={index} className="aspect-[2/3] bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         ) : selectedMovies.length > 0 ? (
@@ -257,7 +257,7 @@ const Index = () => {
                   key={`${movie.id}-${index}`}
                   className="group cursor-pointer transition-all duration-300 hover:scale-105"
                 >
-                  <div className="aspect-[2/3] bg-gray-800 rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                  <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
                     {movie.poster ? (
                       <img
                         src={movie.poster}
@@ -269,17 +269,17 @@ const Index = () => {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-500">
-                        <Movie className="w-12 h-12" />
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        <Film className="w-12 h-12" />
                       </div>
                     )}
                   </div>
                   <div className="mt-3 px-1">
-                    <h3 className="text-sm font-medium text-white line-clamp-2 group-hover:text-blue-400 transition-colors duration-200">
+                    <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
                       {movie.title}
                     </h3>
                     {movie.year && (
-                      <p className="text-xs text-gray-400 mt-1">{movie.year}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
                     )}
                   </div>
                 </div>
@@ -288,9 +288,9 @@ const Index = () => {
           </>
         ) : (
           <div className="text-center py-20">
-            <Movie className="w-24 h-24 text-gray-600 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-gray-400 mb-4">Start Your Discovery</h2>
-            <p className="text-gray-500 max-w-md mx-auto">
+            <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-muted-foreground mb-4">Start Your Discovery</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
               Search for any movie or TV show to get personalized recommendations and discover your next favorite watch.
             </p>
           </div>
