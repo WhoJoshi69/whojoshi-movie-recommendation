@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -51,12 +50,11 @@ const Index = () => {
 
   const fetchSuggestions = async (term: string) => {
     try {
-      // Using a CORS proxy to bypass CORS restrictions
-      const proxyUrl = 'https://api.allorigins.win/get?url=';
+      // Using corsproxy.io as an alternative CORS proxy
+      const proxyUrl = 'https://corsproxy.io/?';
       const targetUrl = `https://bestsimilar.com/site/autocomplete?term=${encodeURIComponent(term)}`;
       const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-      const proxyData = await response.json();
-      const data = JSON.parse(proxyData.contents);
+      const data = await response.json();
       setSuggestions(data);
       setShowSuggestions(true);
       setSelectedIndex(-1);
@@ -70,12 +68,11 @@ const Index = () => {
   const fetchMovieRecommendations = async (url: string, selectedItem: AutocompleteItem) => {
     setIsLoading(true);
     try {
-      // Using a CORS proxy to bypass CORS restrictions
-      const proxyUrl = 'https://api.allorigins.win/get?url=';
+      // Using corsproxy.io as an alternative CORS proxy
+      const proxyUrl = 'https://corsproxy.io/?';
       const targetUrl = `https://bestsimilar.com${url}`;
       const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-      const proxyData = await response.json();
-      const html = proxyData.contents;
+      const html = await response.text();
       
       // Parse HTML to extract movie data
       const parser = new DOMParser();
