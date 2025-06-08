@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FeedbackFishComponent from "./components/FeedbackFish";
+import SplashCursor from "./components/SplashCursor";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SplashCursor />
       <FeedbackFishComponent />
       <BrowserRouter>
         <Routes>
