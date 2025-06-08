@@ -5,6 +5,7 @@ import { Search, Film, Tv, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
+import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
 
 interface AutocompleteItem {
   id: string;
@@ -339,7 +340,22 @@ const Index = () => {
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               WhoJoshi Recommendations
             </h1>
-            <p className="text-muted-foreground">Discover your next favorite movie or TV show</p>
+            <p className="text-muted-foreground">
+              <span>In this app you can </span>
+              <RotatingText
+                texts={[
+                  "find curated recommendations",
+                  "discover hidden gems",
+                  "support Darshit Joshi from bottom right button",
+                  "explore new favorites",
+                  "give feedback from top left corner",
+                  "get personalized suggestions",
+                  "customize UI from top right corner"
+                ]}
+                rotationInterval={3000}
+                className="text-white font-bold inline"
+              />
+            </p>
           </div>
           
           {/* Search Bar */}
