@@ -6,8 +6,12 @@ A movie and TV show recommendation application frontend that helps you discover 
 
 - Search for movies and TV shows
 - Get personalized recommendations
+- Clickable movie/TV show cards that open detailed information pages
+- Detailed movie/TV show pages with cast, crew, ratings, and similar content
+- TMDB integration for comprehensive movie and TV show data
 - Separate sections for movies and TV shows
 - Clean, modern UI with dark/light theme support
+- Responsive design optimized for mobile and desktop
 
 ## Setup and Installation
 
@@ -31,16 +35,21 @@ npm install
 
 ### Environment Configuration
 
-The application uses environment variables to configure API endpoints:
+The application uses environment variables to configure API endpoints and external services:
 
 1. **Development**: Copy `.env.example` to `.env.local` and configure:
 ```bash
 cp .env.example .env.local
 ```
 
-2. **Production**: Set the environment variable in your deployment platform:
+2. **Required Environment Variables**:
+   - `VITE_API_BASE_URL`: Your backend API URL
+   - `VITE_TMDB_API_KEY`: Your TMDB API key (get it from https://www.themoviedb.org/settings/api)
+
+3. **Production**: Set the environment variables in your deployment platform:
 ```bash
 VITE_API_BASE_URL=https://your-backend-deployment-url.vercel.app
+VITE_TMDB_API_KEY=your_tmdb_api_key_here
 ```
 
 ### Running the Application

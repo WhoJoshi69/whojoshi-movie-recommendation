@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, Film, Tv, AlertCircle, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
+import { findTMDBId } from "@/lib/tmdb";
 import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { Github } from "lucide-react";
@@ -32,6 +34,7 @@ interface MovieData {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<AutocompleteResponse>({});
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -280,6 +283,43 @@ const Index = () => {
     setShouldShowDropdown(false);
     searchRef.current?.blur();
   }, []);
+
+  const handleCardClick = useCallback(async (movie: MovieData) => {
+    try {
+      // Show loading state
+      toast({
+        title: "Loading...",
+        description: "Searching for movie details...",
+      });
+
+      // Search for TMDB ID using the movie title
+      const tmdbId = await findTMDBId(movie.title, movie.type);
+      
+      if (tmdbId) {
+        // Navigate to details page with TMDB ID
+        navigate(`/details/${movie.type}/${tmdbId}`);
+      } else {
+        // Fallback: try to extract TMDB ID from the existing ID if it's numeric
+        const numericId = parseInt(movie.id);
+        if (!isNaN(numericId) && numericId > 0) {
+          navigate(`/details/${movie.type}/${numericId}`);
+        } else {
+          toast({
+            title: "Not Found",
+            description: "Could not find detailed information for this title.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error finding TMDB ID:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load movie details. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [navigate, toast]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
@@ -545,6 +585,7 @@ const Index = () => {
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
+                              onClick={() => handleCardClick(movie)}
                             >
                               <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
                                 {movie.poster ? (
@@ -602,6 +643,7 @@ const Index = () => {
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
+                              onClick={() => handleCardClick(show)}
                             >
                               <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
                                 {show.poster ? (
