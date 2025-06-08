@@ -115,6 +115,18 @@ const Details: React.FC<DetailsProps> = () => {
     }
   };
 
+  const handleWatchNow = () => {
+    const watchUrl = mediaType === 'movie' 
+      ? `https://hexa.watch/watch/movie/${tmdbId}`
+      : `https://hexa.watch/watch/tv/${tmdbId}`;
+    
+    // Open in new tab with fullscreen-like experience
+    const newWindow = window.open(watchUrl, '_blank', 'noopener,noreferrer');
+    if (newWindow) {
+      newWindow.focus();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -233,14 +245,18 @@ const Details: React.FC<DetailsProps> = () => {
                 
                 {/* Action Buttons */}
                 <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-                  <Button size="sm" className="flex-1">
-                    <Play className="w-4 h-4 mr-2" />
-                    Watch
+                  <Button 
+                    size="sm" 
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    onClick={handleWatchNow}
+                  >
+                    <Play className="w-4 h-4 mr-2 fill-current" />
+                    Watch Now
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="hover:bg-red-50 hover:border-red-200 transition-colors duration-200">
                     <Heart className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleShare}>
+                  <Button size="sm" variant="outline" onClick={handleShare} className="hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200">
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -362,6 +378,28 @@ const Details: React.FC<DetailsProps> = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Watch Now Section */}
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-xl p-4 md:p-6 border border-red-200 dark:border-red-800">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="text-center md:text-left">
+                  <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-1">
+                    Ready to watch?
+                  </h3>
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Stream {title} now in high quality
+                  </p>
+                </div>
+                <Button 
+                  size="lg"
+                  className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-8 py-3"
+                  onClick={handleWatchNow}
+                >
+                  <Play className="w-5 h-5 mr-2 fill-current" />
+                  Watch Now
+                </Button>
+              </div>
             </div>
 
             {/* External Links */}
