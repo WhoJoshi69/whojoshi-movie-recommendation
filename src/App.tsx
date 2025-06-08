@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import IndexMobile from "./pages/IndexMobile";
 import NotFound from "./pages/NotFound";
 import FeedbackFishComponent from "./components/FeedbackFish";
 import SplashCursor from "./components/SplashCursor";
@@ -69,7 +68,7 @@ const App = () => {
         <FeedbackFishComponent />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={isMobile ? <IndexMobile /> : <Index />} />
+            <Route path="/" element={<Index />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
