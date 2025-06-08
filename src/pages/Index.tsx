@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, Film, Tv, AlertCircle } from "lucide-react";
+import { Search, Film, Tv, AlertCircle, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
@@ -18,6 +18,7 @@ interface AutocompleteItem {
 interface AutocompleteResponse {
   movie?: AutocompleteItem[];
   tv?: AutocompleteItem[];
+  tag?: AutocompleteItem[];
 }
 
 interface MovieData {
@@ -86,7 +87,7 @@ const Index = () => {
       if (response.ok) {
         const data = await response.json();
         setSuggestions(data);
-        const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
+        const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0) || (data.tag && data.tag.length > 0);
         // Only show suggestions if we should show dropdown
         if (shouldShowDropdown) {
           setShowSuggestions(hasResults);
@@ -115,7 +116,7 @@ const Index = () => {
       
       if (term.toLowerCase().includes('wonder')) {
         setSuggestions(mockSuggestions);
-        const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0);
+        const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0) || (mockSuggestions.tag && mockSuggestions.tag.length > 0);
         // Only show suggestions if we should show dropdown
         if (shouldShowDropdown) {
           setShowSuggestions(hasResults);
@@ -266,7 +267,7 @@ const Index = () => {
       searchRef.current?.blur();
     } else {
       // Handle enter key on input
-      const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+      const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
       if (allSuggestions.length > 0 && showSuggestions) {
         const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
         fetchMovieRecommendations(selectedItem.url, selectedItem);
@@ -284,7 +285,7 @@ const Index = () => {
   }, [suggestions, selectedIndex, showSuggestions]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+    const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
     
     if (!showSuggestions || allSuggestions.length === 0) {
       if (e.key === 'Enter') {
@@ -382,7 +383,7 @@ const Index = () => {
                 }}
                 onSubmit={(e) => {
                   e.preventDefault();
-                  const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+                  const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
                   if (allSuggestions.length > 0 && showSuggestions) {
                     const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
                     handleSearch(selectedItem);
@@ -436,7 +437,7 @@ const Index = () => {
                   )}
                   
                   {suggestions.tv && suggestions.tv.length > 0 && (
-                    <div>
+                    <div className="mb-2">
                       <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
                         <Tv className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
                         TV Shows
@@ -446,6 +447,33 @@ const Index = () => {
                         return (
                           <div
                             key={`tv-${item.id}`}
+                            ref={el => suggestionRefs.current[globalIndex] = el}
+                            className={cn(
+                              "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
+                              selectedIndex === globalIndex 
+                                ? "bg-primary/20 border border-primary/30" 
+                                : "hover:bg-muted/50 active:bg-muted/70"
+                            )}
+                            onClick={() => handleSearch(item)}
+                          >
+                            <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {suggestions.tag && suggestions.tag.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
+                        <Tag className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
+                        Tags
+                      </div>
+                      {suggestions.tag.map((item, index) => {
+                        const globalIndex = (suggestions.movie?.length || 0) + (suggestions.tv?.length || 0) + index;
+                        return (
+                          <div
+                            key={`tag-${item.id}`}
                             ref={el => suggestionRefs.current[globalIndex] = el}
                             className={cn(
                               "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
