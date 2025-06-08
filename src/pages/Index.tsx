@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
 import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 
 interface AutocompleteItem {
   id: string;
@@ -358,28 +359,38 @@ const Index = () => {
           
           {/* Search Bar */}
           <div className="relative max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 android-sm:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 android-sm:w-5 android-sm:h-5" />
-              <Input
-                ref={searchRef}
-                type="text"
-                placeholder="Search movies or TV shows..."
-                value={searchTerm}
+            <div onKeyDown={handleKeyDown}>
+              <PlaceholdersAndVanishInput
+                placeholders={[
+                  "Search for Wonder Woman...",
+                  "Find movies like Inception...",
+                  "Discover TV shows like Breaking Bad...",
+                  "Look for action movies...",
+                  "Search for comedy series...",
+                  "Find sci-fi recommendations..."
+                ]}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   // Re-enable dropdown when user starts typing
                   if (!shouldShowDropdown) {
                     setShouldShowDropdown(true);
                   }
-                }}
-                onKeyDown={handleKeyDown}
-                onFocus={() => {
-                  if (searchTerm.length > 1 && Object.keys(suggestions).length > 0 && shouldShowDropdown) {
+                  // Show suggestions on focus if available
+                  if (e.target.value.length > 1 && Object.keys(suggestions).length > 0 && shouldShowDropdown) {
                     setShowSuggestions(true);
                   }
                 }}
-                className="pl-10 android-sm:pl-12 pr-3 android-sm:pr-4 py-4 android-sm:py-6 text-base android-sm:text-lg bg-card border-border focus:border-primary focus:ring-primary/20 rounded-xl w-full touch-manipulation"
-                style={{ fontSize: '16px' }} // Prevents zoom on iOS
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || [])];
+                  if (allSuggestions.length > 0 && showSuggestions) {
+                    const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
+                    handleSearch(selectedItem);
+                  } else if (searchTerm.trim()) {
+                    // If no suggestions but there's a search term, try to search anyway
+                    handleSearch();
+                  }
+                }}
               />
             </div>
             
