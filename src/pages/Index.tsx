@@ -134,46 +134,71 @@ const Index = () => {
       const response = await fetch(`${API_ENDPOINTS.recommendations}?url=${encodeURIComponent(url)}`);
       
       if (response.ok) {
-        const html = await response.text();
+        // Check content type to determine response format
+        const contentType = response.headers.get('content-type');
         
-        // Parse HTML to extract movie data
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const movieElements = doc.querySelectorAll('.column-img');
-        
-        const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
-          const img = element.querySelector('img');
-          const imgSrc = img?.getAttribute('src') || '';
-          const imgAlt = img?.getAttribute('alt') || '';
-          const dataId = img?.getAttribute('data-id') || index.toString();
+        if (contentType && contentType.includes('application/json')) {
+          // New JSON format
+          const data = await response.json();
           
-          // Extract year from alt text
-          const yearMatch = imgAlt.match(/\((\d{4})\)/);
-          const year = yearMatch ? yearMatch[1] : '';
+          if (data.success && data.data) {
+            const movies: MovieData[] = data.data.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              poster: item.poster,
+              year: item.year,
+              type: item.type as 'movie' | 'tv'
+            }));
+            
+            console.log(`Received ${movies.length} items from API:`, {
+              movies: movies.filter(m => m.type === 'movie').length,
+              tvShows: movies.filter(m => m.type === 'tv').length
+            });
+            
+            setSelectedMovies(movies);
+            return;
+          }
+        } else {
+          // Fallback: HTML format
+          const html = await response.text();
           
-          // Check for TV show indicator in the same container or nearby elements
-          const container = element.closest('.column') || element.parentElement;
-          const tvShowLabel = container?.querySelector('span.label.label-default');
-          const isTvShow = tvShowLabel?.textContent?.trim() === 'TV show';
+          // Parse HTML to extract movie data
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const movieElements = doc.querySelectorAll('.column-img');
           
-          return {
-            id: dataId,
-            title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
-            poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
-            year,
-            type: isTvShow ? 'tv' as const : 'movie' as const
-          };
-        }).filter(movie => movie.poster && movie.title);
+          const movies: MovieData[] = Array.from(movieElements).map((element, index) => {
+            const img = element.querySelector('img');
+            const imgSrc = img?.getAttribute('src') || '';
+            const imgAlt = img?.getAttribute('alt') || '';
+            const dataId = img?.getAttribute('data-id') || index.toString();
+            
+            // Extract year from alt text
+            const yearMatch = imgAlt.match(/\((\d{4})\)/);
+            const year = yearMatch ? yearMatch[1] : '';
+            
+            // Check for TV show indicator in the same container or nearby elements
+            const container = element.closest('.column') || element.parentElement;
+            const tvShowLabel = container?.querySelector('.label-default');
+            const isTvShow = tvShowLabel?.textContent?.includes('TV show') || false;
+            
+            return {
+              id: dataId,
+              title: imgAlt.replace(/\s*\(\d{4}\)/, ''),
+              poster: imgSrc.startsWith('/') ? `https://bestsimilar.com${imgSrc}` : imgSrc,
+              year,
+              type: isTvShow ? 'tv' as const : 'movie' as const
+            };
+          }).filter(movie => movie.poster && movie.title);
 
-        // Separate movies and TV shows
-        const moviesList = movies.filter(item => item.type === 'movie');
-        const tvShowsList = movies.filter(item => item.type === 'tv');
-        
-        // Combine them with movies first, then TV shows
-        const combinedList = [...moviesList, ...tvShowsList];
-        
-        setSelectedMovies(combinedList); // Show all movies from all pages
-        return;
+          console.log(`Parsed ${movies.length} items from HTML:`, {
+            movies: movies.filter(m => m.type === 'movie').length,
+            tvShows: movies.filter(m => m.type === 'tv').length
+          });
+
+          setSelectedMovies(movies);
+          return;
+        }
       }
       
       throw new Error('Failed to fetch recommendations');
