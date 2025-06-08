@@ -171,7 +171,7 @@ const Index = () => {
         // Combine them with movies first, then TV shows
         const combinedList = [...moviesList, ...tvShowsList];
         
-        setSelectedMovies(combinedList.slice(0, 24)); // Limit to 24 items
+        setSelectedMovies(combinedList); // Show all movies from all pages
         return;
       }
       
