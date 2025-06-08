@@ -662,7 +662,7 @@ const Index = () => {
           <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground">
             <span>Built in India by</span>
             <a
-              href="https://github.com/WhoJoshi69"
+              href="https://superintro.in/portfolio/darshitjoshi"
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 hover:decoration-primary"
