@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const FeedbackFishComponent = () => {
   return (
-    <div className="fixed top-4 right-4 z-[60]">
+    <div className="fixed top-4 left-4 z-[60]">
       <FeedbackFish projectId="f8a40614c9bf8f">
         <Button
           size="sm"
