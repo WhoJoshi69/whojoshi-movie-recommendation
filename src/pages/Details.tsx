@@ -23,14 +23,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { 
   getMovieDetails, 
   getTVShowDetails, 
-  getSimilar, 
   getCredits,
   getWatchProviders,
   getTMDBImageUrl,
   TMDBMovie,
-  TMDBTVShow,
-  TMDBSearchResult
+  TMDBTVShow
 } from "@/lib/tmdb";
+import { getSimilarFromBestSimilar, BestSimilarMovie } from "@/lib/api";
 
 interface StreamingProvider {
   id: number;
@@ -54,7 +53,7 @@ const Details: React.FC<DetailsProps> = () => {
   
   const [movieDetails, setMovieDetails] = useState<TMDBMovie | null>(null);
   const [tvDetails, setTVDetails] = useState<TMDBTVShow | null>(null);
-  const [similar, setSimilar] = useState<TMDBSearchResult[]>([]);
+  const [similar, setSimilar] = useState<BestSimilarMovie[]>([]);
   const [credits, setCredits] = useState<any>(null);
   const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,18 +77,21 @@ const Details: React.FC<DetailsProps> = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch main details
+      // Fetch main details and get title for BestSimilar search
+      let currentTitle = '';
       if (mediaType === 'movie') {
         const details = await getMovieDetails(tmdbId);
         setMovieDetails(details);
+        currentTitle = details.title;
       } else {
         const details = await getTVShowDetails(tmdbId);
         setTVDetails(details);
+        currentTitle = details.name;
       }
 
       // Fetch similar content, credits, and watch providers in parallel
       const [similarData, creditsData, watchProvidersData] = await Promise.all([
-        getSimilar(tmdbId, mediaType),
+        getSimilarFromBestSimilar(tmdbId, mediaType, currentTitle),
         getCredits(tmdbId, mediaType),
         getWatchProviders(tmdbId, mediaType).catch(() => null) // Don't fail if watch providers aren't available
       ]);
@@ -115,8 +117,8 @@ const Details: React.FC<DetailsProps> = () => {
     }
   };
 
-  const handleSimilarClick = (item: TMDBSearchResult) => {
-    navigate(`/details/${item.media_type}/${item.id}`);
+  const handleSimilarClick = (item: BestSimilarMovie) => {
+    navigate(`/details/${item.type}/${item.id}`);
   };
 
   const handleShare = async () => {
@@ -583,31 +585,34 @@ const Details: React.FC<DetailsProps> = () => {
                   <Card className="overflow-hidden">
                     <div className="aspect-[2/3] relative">
                       <img
-                        src={getTMDBImageUrl(item.poster_path, 'w342')}
-                        alt={item.title || item.name}
+                        src={item.poster}
+                        alt={item.title}
                         className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
                         loading="lazy"
+                        onError={(e) => {
+                          // Fallback to a placeholder if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
                   </Card>
                   <div className="mt-2 px-1">
                     <h3 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                      {item.title || item.name}
+                      {item.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                        <span className="text-xs text-muted-foreground">
-                          {item.vote_average.toFixed(1)}
-                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {item.type === 'movie' ? 'Movie' : 'TV Show'}
+                        </Badge>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {item.release_date || item.first_air_date 
-                          ? new Date(item.release_date || item.first_air_date || '').getFullYear()
-                          : ''
-                        }
-                      </span>
+                      {item.year && (
+                        <span className="text-xs text-muted-foreground">
+                          {item.year}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
