@@ -1,0 +1,245 @@
+/* Mobile and Android-specific optimizations */
+
+/* Touch-friendly interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Prevent zoom on input focus (iOS/Android) */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  font-size: 16px !important;
+  transform-origin: left top;
+  transition: none;
+}
+
+/* Android-specific optimizations */
+@media screen and (max-width: 768px) {
+  /* Improve scrolling performance */
+  * {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize for Android Chrome */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Better tap targets for Android */
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+  }
+
+  /* Improve touch responsiveness */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Android keyboard handling */
+  .keyboard-adjust {
+    transition: height 0.3s ease;
+  }
+
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Optimize images for mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Android-specific breakpoints */
+@media screen and (max-width: 360px) {
+  /* Small Android devices */
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .text-responsive {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+@media screen and (min-width: 361px) and (max-width: 412px) {
+  /* Medium Android devices */
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .text-responsive {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}
+
+@media screen and (min-width: 413px) and (max-width: 768px) {
+  /* Large Android devices and tablets */
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .text-responsive {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .hover-effect:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Add active states for better feedback */
+  .touch-feedback:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+  
+  /* Larger touch targets */
+  button,
+  .clickable {
+    padding: 12px 16px;
+    margin: 4px;
+  }
+}
+
+/* High DPI Android displays */
+@media (-webkit-min-device-pixel-ratio: 2),
+       (min-resolution: 192dpi) {
+  /* Optimize for high-density displays */
+  .icon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Android Chrome address bar handling */
+@supports (-webkit-appearance: none) {
+  .full-height {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
+
+/* Prevent text selection on touch */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling for Android */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Android-specific focus styles */
+@media screen and (max-width: 768px) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Performance optimizations for Android */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+.optimize-animations {
+  animation-fill-mode: both;
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Android safe area handling */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Android keyboard viewport handling */
+@media screen and (max-height: 500px) {
+  .keyboard-visible {
+    padding-bottom: 0;
+  }
+  
+  .search-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+}
+
+/* Android-specific grid optimizations */
+@media screen and (max-width: 480px) {
+  .mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .mobile-grid-item {
+    aspect-ratio: 2/3;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+}
+
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}

@@ -12,10 +12,29 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '1.5rem',
+				lg: '2rem'
+			},
 			screens: {
 				'2xl': '1400px'
 			}
+		},
+		screens: {
+			'xs': '375px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+			// Android-specific breakpoints
+			'android-sm': '360px',
+			'android-md': '412px',
+			'android-lg': '768px',
+			// Touch-friendly breakpoints
+			'touch': { 'raw': '(hover: none) and (pointer: coarse)' },
+			'no-touch': { 'raw': '(hover: hover) and (pointer: fine)' }
 		},
 		extend: {
 			colors: {

@@ -27,7 +27,7 @@ interface MovieData {
   type: 'movie' | 'tv';
 }
 
-const Index = () => {
+const IndexMobile = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<AutocompleteResponse>({});
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -515,21 +515,21 @@ const Index = () => {
                       )}
                     >
                       {moviesList.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
                           {moviesList.map((movie, index) => (
                             <div
                               key={`movie-${movie.id}-${index}`}
-                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              className="group cursor-pointer transition-all duration-300 touch:hover:scale-100 no-touch:hover:scale-105 touch-manipulation"
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
                             >
-                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg touch:group-hover:shadow-lg no-touch:group-hover:shadow-2xl transition-all duration-300">
                                 {movie.poster ? (
                                   <img
                                     src={movie.poster}
                                     alt={movie.title}
-                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    className="w-full h-full object-cover touch:group-hover:brightness-100 no-touch:group-hover:brightness-110 transition-all duration-300"
                                     loading="lazy"
                                     onError={(e) => {
                                       e.currentTarget.src = '/placeholder.svg';
@@ -537,12 +537,12 @@ const Index = () => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                    <Film className="w-12 h-12" />
+                                    <Film className="w-8 h-8 android-sm:w-10 android-sm:h-10 lg:w-12 lg:h-12" />
                                   </div>
                                 )}
                               </div>
-                              <div className="mt-3 px-1">
-                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                              <div className="mt-2 android-sm:mt-3 px-1">
+                                <h3 className="text-xs android-sm:text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
                                   {movie.title}
                                 </h3>
                                 {movie.year && (
@@ -553,10 +553,10 @@ const Index = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-20">
-                          <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
-                          <h2 className="text-2xl font-bold text-muted-foreground mb-4">No Movies Found</h2>
-                          <p className="text-muted-foreground">
+                        <div className="text-center py-12 android-sm:py-20">
+                          <Film className="w-16 h-16 android-sm:w-24 android-sm:h-24 text-muted-foreground mx-auto mb-4 android-sm:mb-6" />
+                          <h2 className="text-xl android-sm:text-2xl font-bold text-muted-foreground mb-2 android-sm:mb-4">No Movies Found</h2>
+                          <p className="text-sm android-sm:text-base text-muted-foreground px-4">
                             No movie recommendations available for this selection.
                           </p>
                         </div>
@@ -573,21 +573,21 @@ const Index = () => {
                       )}
                     >
                       {tvShowsList.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
                           {tvShowsList.map((show, index) => (
                             <div
                               key={`tv-${show.id}-${index}`}
-                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              className="group cursor-pointer transition-all duration-300 touch:hover:scale-100 no-touch:hover:scale-105 touch-manipulation"
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
                             >
-                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg touch:group-hover:shadow-lg no-touch:group-hover:shadow-2xl transition-all duration-300">
                                 {show.poster ? (
                                   <img
                                     src={show.poster}
                                     alt={show.title}
-                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    className="w-full h-full object-cover touch:group-hover:brightness-100 no-touch:group-hover:brightness-110 transition-all duration-300"
                                     loading="lazy"
                                     onError={(e) => {
                                       e.currentTarget.src = '/placeholder.svg';
@@ -595,12 +595,12 @@ const Index = () => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                    <Tv className="w-12 h-12" />
+                                    <Tv className="w-8 h-8 android-sm:w-10 android-sm:h-10 lg:w-12 lg:h-12" />
                                   </div>
                                 )}
                               </div>
-                              <div className="mt-3 px-1">
-                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                              <div className="mt-2 android-sm:mt-3 px-1">
+                                <h3 className="text-xs android-sm:text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
                                   {show.title}
                                 </h3>
                                 {show.year && (
@@ -611,10 +611,10 @@ const Index = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-20">
-                          <Tv className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
-                          <h2 className="text-2xl font-bold text-muted-foreground mb-4">No TV Shows Found</h2>
-                          <p className="text-muted-foreground">
+                        <div className="text-center py-12 android-sm:py-20">
+                          <Tv className="w-16 h-16 android-sm:w-24 android-sm:h-24 text-muted-foreground mx-auto mb-4 android-sm:mb-6" />
+                          <h2 className="text-xl android-sm:text-2xl font-bold text-muted-foreground mb-2 android-sm:mb-4">No TV Shows Found</h2>
+                          <p className="text-sm android-sm:text-base text-muted-foreground px-4">
                             No TV show recommendations available for this selection.
                           </p>
                         </div>
@@ -626,10 +626,10 @@ const Index = () => {
             })()}
           </>
         ) : (
-          <div className="text-center py-20">
-            <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-muted-foreground mb-4">Start Your Discovery</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
+          <div className="text-center py-12 android-sm:py-20">
+            <Film className="w-16 h-16 android-sm:w-24 android-sm:h-24 text-muted-foreground mx-auto mb-4 android-sm:mb-6" />
+            <h2 className="text-xl android-sm:text-2xl font-bold text-muted-foreground mb-2 android-sm:mb-4">Start Your Discovery</h2>
+            <p className="text-sm android-sm:text-base text-muted-foreground max-w-md mx-auto px-4">
               Search for any movie or TV show to get personalized recommendations and discover your next favorite watch.
             </p>
           </div>
@@ -639,4 +639,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default IndexMobile;
