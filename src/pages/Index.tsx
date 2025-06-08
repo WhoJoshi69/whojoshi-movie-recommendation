@@ -42,6 +42,7 @@ const Index = () => {
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -350,8 +351,8 @@ const Index = () => {
             </p>
           </div>
           {/* Search Bar + Tags Button */}
-          <div className="relative max-w-2xl mx-auto flex gap-2 items-center">
-            <div className="flex-1" onKeyDown={handleKeyDown}>
+          <div className="max-w-2xl mx-auto flex gap-2 items-center">
+            <div className="flex-1 relative" ref={searchContainerRef} onKeyDown={handleKeyDown}>
               <PlaceholdersAndVanishInput
                 placeholders={[
                   "Search for Wonder Woman...",
@@ -381,6 +382,91 @@ const Index = () => {
                   }
                 }}
               />
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && allSuggestions.length > 0 && (
+                <Card 
+                  ref={dropdownRef}
+                  className="absolute top-full mt-2 w-full bg-card/95 backdrop-blur-md border-border rounded-xl shadow-2xl max-h-80 android-sm:max-h-96 overflow-y-auto z-10"
+                >
+                  <div className="p-1 android-sm:p-2">
+                    {suggestions.movie && suggestions.movie.length > 0 && (
+                      <div className="mb-2">
+                        <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
+                          <Film className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
+                          Movies
+                        </div>
+                        {suggestions.movie.map((item, index) => (
+                          <div
+                            key={`movie-${item.id}`}
+                            ref={el => suggestionRefs.current[index] = el}
+                            className={cn(
+                              "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
+                              selectedIndex === index 
+                                ? "bg-primary/20 border border-primary/30" 
+                                : "hover:bg-muted/50 active:bg-muted/70"
+                            )}
+                            onClick={() => handleSearch(item)}
+                          >
+                            <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {suggestions.tv && suggestions.tv.length > 0 && (
+                      <div className="mb-2">
+                        <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
+                          <Tv className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
+                          TV Shows
+                        </div>
+                        {suggestions.tv.map((item, index) => {
+                          const globalIndex = (suggestions.movie?.length || 0) + index;
+                          return (
+                            <div
+                              key={`tv-${item.id}`}
+                              ref={el => suggestionRefs.current[globalIndex] = el}
+                              className={cn(
+                                "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
+                                selectedIndex === globalIndex 
+                                  ? "bg-primary/20 border border-primary/30" 
+                                  : "hover:bg-muted/50 active:bg-muted/70"
+                              )}
+                              onClick={() => handleSearch(item)}
+                            >
+                              <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {suggestions.tag && suggestions.tag.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
+                          <Tag className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
+                          Tags
+                        </div>
+                        {suggestions.tag.map((item, index) => {
+                          const globalIndex = (suggestions.movie?.length || 0) + (suggestions.tv?.length || 0) + index;
+                          return (
+                            <div
+                              key={`tag-${item.id}`}
+                              ref={el => suggestionRefs.current[globalIndex] = el}
+                              className={cn(
+                                "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
+                                selectedIndex === globalIndex 
+                                  ? "bg-primary/20 border border-primary/30" 
+                                  : "hover:bg-muted/50 active:bg-muted/70"
+                              )}
+                              onClick={() => handleSearch(item)}
+                            >
+                              <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
             </div>
             <TagsDialog onTagSelect={handleTagSelect} />
           </div>
@@ -392,91 +478,6 @@ const Index = () => {
                 <span className="text-xs android-sm:text-sm">Using demo data due to API limitations</span>
               </div>
             </div>
-          )}
-          {/* Autocomplete Suggestions */}
-          {showSuggestions && allSuggestions.length > 0 && (
-            <Card 
-              ref={dropdownRef}
-              className="absolute top-full mt-2 w-full bg-card/95 backdrop-blur-md border-border rounded-xl shadow-2xl max-h-80 android-sm:max-h-96 overflow-y-auto z-10"
-            >
-              <div className="p-1 android-sm:p-2">
-                {suggestions.movie && suggestions.movie.length > 0 && (
-                  <div className="mb-2">
-                    <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
-                      <Film className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
-                      Movies
-                    </div>
-                    {suggestions.movie.map((item, index) => (
-                      <div
-                        key={`movie-${item.id}`}
-                        ref={el => suggestionRefs.current[index] = el}
-                        className={cn(
-                          "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
-                          selectedIndex === index 
-                            ? "bg-primary/20 border border-primary/30" 
-                            : "hover:bg-muted/50 active:bg-muted/70"
-                        )}
-                        onClick={() => handleSearch(item)}
-                      >
-                        <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {suggestions.tv && suggestions.tv.length > 0 && (
-                  <div className="mb-2">
-                    <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
-                      <Tv className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
-                      TV Shows
-                    </div>
-                    {suggestions.tv.map((item, index) => {
-                      const globalIndex = (suggestions.movie?.length || 0) + index;
-                      return (
-                        <div
-                          key={`tv-${item.id}`}
-                          ref={el => suggestionRefs.current[globalIndex] = el}
-                          className={cn(
-                            "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
-                            selectedIndex === globalIndex 
-                              ? "bg-primary/20 border border-primary/30" 
-                              : "hover:bg-muted/50 active:bg-muted/70"
-                          )}
-                          onClick={() => handleSearch(item)}
-                        >
-                          <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {suggestions.tag && suggestions.tag.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 px-2 android-sm:px-3 py-2 text-xs android-sm:text-sm text-muted-foreground font-medium">
-                      <Tag className="w-3 h-3 android-sm:w-4 android-sm:h-4" />
-                      Tags
-                    </div>
-                    {suggestions.tag.map((item, index) => {
-                      const globalIndex = (suggestions.movie?.length || 0) + (suggestions.tv?.length || 0) + index;
-                      return (
-                        <div
-                          key={`tag-${item.id}`}
-                          ref={el => suggestionRefs.current[globalIndex] = el}
-                          className={cn(
-                            "px-2 android-sm:px-3 py-3 android-sm:py-3 cursor-pointer rounded-lg transition-all duration-200 touch-manipulation",
-                            selectedIndex === globalIndex 
-                              ? "bg-primary/20 border border-primary/30" 
-                              : "hover:bg-muted/50 active:bg-muted/70"
-                          )}
-                          onClick={() => handleSearch(item)}
-                        >
-                          <div className="text-sm android-sm:text-base text-foreground font-medium">{item.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </Card>
           )}
         </div>
       </div>
