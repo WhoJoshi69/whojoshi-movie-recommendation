@@ -9,7 +9,9 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  cursor: pointer;
 }
+
 
 /* Prevent zoom on input focus (iOS/Android) */
 input[type="text"],
@@ -241,5 +243,52 @@ select {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+  }
+}
+
+/* Enhanced mobile card interactions */
+@media screen and (max-width: 768px) {
+  .group:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease !important;
+  }
+  
+  .group:active img {
+    filter: brightness(1.1) !important;
+  }
+  
+  /* Improve dialog responsiveness */
+  [role="dialog"] {
+    margin: 8px !important;
+    max-height: 90vh !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  
+  /* Better button touch targets */
+  button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Improve tag button visibility */
+  .tag-button {
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Specific improvements for very small screens */
+@media screen and (max-width: 360px) {
+  .grid {
+    gap: 8px !important;
+  }
+  
+  .text-xs {
+    font-size: 11px !important;
+  }
+  
+  .text-sm {
+    font-size: 12px !important;
   }
 }

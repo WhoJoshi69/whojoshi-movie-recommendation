@@ -254,36 +254,37 @@ const Details: React.FC<DetailsProps> = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         
         {/* Navigation */}
-        <div className="relative z-10 p-4 md:p-8">
+        <div className="relative z-10 p-3 android-sm:p-4 md:p-8">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/')}
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Search
+            <span className="hidden android-sm:inline">Back to Search</span>
+            <span className="android-sm:hidden">Back</span>
           </Button>
         </div>
 
         {/* Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
+        <div className="absolute bottom-0 left-0 right-0 p-3 android-sm:p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-2">
               {mediaType === 'movie' ? (
-                <Film className="w-5 h-5 text-white" />
+                <Film className="w-4 h-4 android-sm:w-5 android-sm:h-5 text-white" />
               ) : (
-                <Tv className="w-5 h-5 text-white" />
+                <Tv className="w-4 h-4 android-sm:w-5 android-sm:h-5 text-white" />
               )}
-              <span className="text-white/80 text-sm font-medium uppercase tracking-wide">
+              <span className="text-white/80 text-xs android-sm:text-sm font-medium uppercase tracking-wide">
                 {mediaType === 'movie' ? 'Movie' : 'TV Show'}
               </span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">
+            <h1 className="text-2xl android-sm:text-3xl md:text-5xl font-bold text-white mb-2 line-clamp-2">
               {title}
             </h1>
             {details.tagline && (
-              <p className="text-lg md:text-xl text-white/90 italic">
+              <p className="text-base android-sm:text-lg md:text-xl text-white/90 italic line-clamp-2">
                 {details.tagline}
               </p>
             )}
@@ -292,7 +293,7 @@ const Details: React.FC<DetailsProps> = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6 android-sm:py-8">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Poster */}
           <div className="md:col-span-1">
@@ -306,19 +307,20 @@ const Details: React.FC<DetailsProps> = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 
                 {/* Action Buttons */}
-                <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+                <div className="absolute bottom-3 android-sm:bottom-4 left-3 android-sm:left-4 right-3 android-sm:right-4 flex gap-2">
                   <Button 
                     size="sm" 
-                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-800 active:to-red-900 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 touch-manipulation min-h-[44px]"
                     onClick={() => handleWatchNow(getDefaultPlatforms()[0].link)}
                   >
                     <Play className="w-4 h-4 mr-2 fill-current" />
-                    Watch Now
+                    <span className="hidden android-sm:inline">Watch Now</span>
+                    <span className="android-sm:hidden">Watch</span>
                   </Button>
-                  <Button size="sm" variant="outline" className="hover:bg-red-50 hover:border-red-200 transition-colors duration-200">
+                  <Button size="sm" variant="outline" className="hover:bg-red-50 hover:border-red-200 active:bg-red-100 transition-colors duration-200 touch-manipulation min-h-[44px] min-w-[44px]">
                     <Heart className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleShare} className="hover:bg-blue-50 hover:border-blue-200 transition-colors duration-200">
+                  <Button size="sm" variant="outline" onClick={handleShare} className="hover:bg-blue-50 hover:border-blue-200 active:bg-blue-100 transition-colors duration-200 touch-manipulation min-h-[44px] min-w-[44px]">
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -442,7 +444,7 @@ const Details: React.FC<DetailsProps> = () => {
               )}
             </div>
 {/* Streaming Platforms Section */}
-<div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800">
+<div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800 !bg-gray-200">
   <div className="mb-4">
     <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
       Where to watch
@@ -579,7 +581,7 @@ const Details: React.FC<DetailsProps> = () => {
               {similar.map((item) => (
                 <div
                   key={item.id}
-                  className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                  className="group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation"
                   onClick={() => handleSimilarClick(item)}
                 >
                   <Card className="overflow-hidden">
@@ -587,7 +589,7 @@ const Details: React.FC<DetailsProps> = () => {
                       <img
                         src={item.poster}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                        className="w-full h-full object-cover group-hover:brightness-110 group-active:brightness-110 transition-all duration-300"
                         loading="lazy"
                         onError={(e) => {
                           // Fallback to a placeholder if image fails to load
@@ -599,7 +601,7 @@ const Details: React.FC<DetailsProps> = () => {
                     </div>
                   </Card>
                   <div className="mt-2 px-1">
-                    <h3 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                    <h3 className="text-xs android-sm:text-sm font-medium line-clamp-2 group-hover:text-primary group-active:text-primary transition-colors duration-200">
                       {item.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">

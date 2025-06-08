@@ -675,18 +675,18 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                           {moviesList.map((movie, index) => (
                             <div
                               key={`movie-${movie.id}-${index}`}
-                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              className="group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation"
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
                               onClick={() => handleCardClick(movie)}
                             >
-                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl group-active:shadow-xl transition-all duration-300">
                                 {movie.poster ? (
                                   <img
                                     src={movie.poster}
                                     alt={movie.title}
-                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    className="w-full h-full object-cover group-hover:brightness-110 group-active:brightness-110 transition-all duration-300"
                                     loading="lazy"
                                     onError={(e) => {
                                       e.currentTarget.src = '/placeholder.svg';
@@ -694,12 +694,12 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                    <Film className="w-12 h-12" />
+                                    <Film className="w-8 h-8 android-sm:w-12 android-sm:h-12" />
                                   </div>
                                 )}
                               </div>
-                              <div className="mt-3 px-1">
-                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                              <div className="mt-2 android-sm:mt-3 px-1">
+                                <h3 className="text-xs android-sm:text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary group-active:text-primary transition-colors duration-200">
                                   {movie.title}
                                 </h3>
                                 {movie.year && (
@@ -729,22 +729,22 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                       )}
                     >
                       {tvShowsList.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
                           {tvShowsList.map((show, index) => (
                             <div
                               key={`tv-${show.id}-${index}`}
-                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              className="group cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 touch-manipulation"
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
                               onClick={() => handleCardClick(show)}
                             >
-                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl group-active:shadow-xl transition-all duration-300">
                                 {show.poster ? (
                                   <img
                                     src={show.poster}
                                     alt={show.title}
-                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    className="w-full h-full object-cover group-hover:brightness-110 group-active:brightness-110 transition-all duration-300"
                                     loading="lazy"
                                     onError={(e) => {
                                       e.currentTarget.src = '/placeholder.svg';
@@ -752,12 +752,12 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                    <Tv className="w-12 h-12" />
+                                    <Tv className="w-8 h-8 android-sm:w-12 android-sm:h-12" />
                                   </div>
                                 )}
                               </div>
-                              <div className="mt-3 px-1">
-                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                              <div className="mt-2 android-sm:mt-3 px-1">
+                                <h3 className="text-xs android-sm:text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary group-active:text-primary transition-colors duration-200">
                                   {show.title}
                                 </h3>
                                 {show.year && (

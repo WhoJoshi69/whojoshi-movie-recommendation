@@ -76,23 +76,23 @@ const TagsDialog = ({ onTagSelect, className }: TagsDialogProps) => {
           variant="outline"
           size="sm"
           className={cn(
-            "flex items-center gap-2 bg-background/50 backdrop-blur-sm border-border hover:bg-muted/50 transition-all duration-200",
+            "flex items-center gap-2 bg-background/50 backdrop-blur-sm border-border hover:bg-muted/50 transition-all duration-200 touch-manipulation min-h-[44px] min-w-[44px] android-sm:min-w-auto",
             className
           )}
         >
-          <Tag className="w-4 h-4" />
-          <span className="hidden sm:inline">Tags</span>
+          <Tag className="w-4 h-4 android-sm:w-4 android-sm:h-4" />
+          <span className="sm:inline text-sm">Tags</span>
         </Button>
       </DialogTrigger>
-<DialogContent className="max-w-2xl w-full flex flex-col max-h-[80vh]">
-  <DialogHeader>
-    <DialogTitle className="flex items-center gap-2">
-      <Tag className="w-5 h-5" />
+<DialogContent className="max-w-2xl w-[95vw] android-sm:w-full flex flex-col max-h-[85vh] android-sm:max-h-[80vh] mx-2 android-sm:mx-auto">
+  <DialogHeader className="pb-2">
+    <DialogTitle className="flex items-center gap-2 text-lg android-sm:text-xl">
+      <Tag className="w-4 h-4 android-sm:w-5 android-sm:h-5" />
       Browse Tags
     </DialogTitle>
   </DialogHeader>
 
-  <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
+  <div className="flex flex-col gap-3 android-sm:gap-4 flex-1 min-h-0 overflow-hidden">
     {/* Search Input */}
     <div className="relative">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -100,7 +100,7 @@ const TagsDialog = ({ onTagSelect, className }: TagsDialogProps) => {
         placeholder="Search tags..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-10"
+        className="pl-10 h-10 android-sm:h-auto text-base"
       />
     </div>
 
@@ -108,18 +108,18 @@ const TagsDialog = ({ onTagSelect, className }: TagsDialogProps) => {
     <div className="flex-1 overflow-y-auto">
       <ScrollArea className="h-full">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-1">
+          <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 gap-2 p-1">
             {Array.from({ length: 20 }).map((_, index) => (
-              <div key={index} className="h-8 bg-muted rounded-full animate-pulse" />
+              <div key={index} className="h-8 android-sm:h-8 bg-muted rounded-full animate-pulse" />
             ))}
           </div>
         ) : filteredTags.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 p-1">
+          <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 gap-2 android-sm:gap-2 p-1">
             {filteredTags.map((tag, index) => (
               <Badge
                 key={`${tag.name}-${index}`}
                 variant="secondary"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all duration-200 justify-center py-2 px-3 text-center break-words"
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground active:bg-primary active:text-primary-foreground transition-all duration-200 justify-center py-3 android-sm:py-2 px-3 text-center break-words touch-manipulation min-h-[44px] android-sm:min-h-auto text-sm android-sm:text-sm"
                 onClick={() => handleTagClick(tag)}
               >
                 {tag.name}
@@ -129,14 +129,14 @@ const TagsDialog = ({ onTagSelect, className }: TagsDialogProps) => {
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <Tag className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No tags found matching "{searchTerm}"</p>
+            <p className="text-sm android-sm:text-base">No tags found matching "{searchTerm}"</p>
           </div>
         )}
       </ScrollArea>
     </div>
 
     {/* Footer */}
-    <div className="text-xs text-muted-foreground text-center border-t pt-3">
+    <div className="text-xs text-muted-foreground text-center border-t pt-2 android-sm:pt-3">
       {filteredTags.length > 0 && (
         <p>Showing {filteredTags.length} of {tags.length} tags</p>
       )}
