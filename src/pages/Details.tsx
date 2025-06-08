@@ -297,7 +297,7 @@ const Details: React.FC<DetailsProps> = () => {
             <Card className="overflow-hidden sticky top-8">
               <div className="aspect-[2/3] relative">
                 <img
-                  src={getTMDBImageUrl(details.poster_path, 'w500')}
+                  src={getTMDBImageUrl(details.poster_path, 'w780')}
                   alt={title}
                   className="w-full h-full object-cover"
                 />

@@ -6,7 +6,7 @@ import { Search, Film, Tv, AlertCircle, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
-import { findTMDBId } from "@/lib/tmdb";
+import { findTMDBId, getTMDBSuggestions, getTrendingContent } from "@/lib/tmdb";
 import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { Github } from "lucide-react";
@@ -33,7 +33,11 @@ interface MovieData {
   type: 'movie' | 'tv';
 }
 
-const Index = () => {
+interface IndexProps {
+  aiSearchEnabled: boolean;
+}
+
+const Index = ({ aiSearchEnabled }: IndexProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<AutocompleteResponse>({});
@@ -83,17 +87,34 @@ const Index = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, aiSearchEnabled]);
 
   const fetchSuggestions = async (term: string) => {
     try {
       setHasError(false);
-      const response = await fetch(`${API_ENDPOINTS.suggestions}?term=${encodeURIComponent(term)}`);
       
-      if (response.ok) {
-        const data = await response.json();
+      if (aiSearchEnabled) {
+        // Use AI search (existing API)
+        const response = await fetch(`${API_ENDPOINTS.suggestions}?term=${encodeURIComponent(term)}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setSuggestions(data);
+          const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0) || (data.tag && data.tag.length > 0);
+          // Only show suggestions if we should show dropdown
+          if (shouldShowDropdown) {
+            setShowSuggestions(hasResults);
+          }
+          setSelectedIndex(-1);
+          return;
+        }
+        
+        throw new Error('Failed to fetch AI suggestions');
+      } else {
+        // Use TMDB search
+        const data = await getTMDBSuggestions(term);
         setSuggestions(data);
-        const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0) || (data.tag && data.tag.length > 0);
+        const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
         // Only show suggestions if we should show dropdown
         if (shouldShowDropdown) {
           setShowSuggestions(hasResults);
@@ -101,8 +122,6 @@ const Index = () => {
         setSelectedIndex(-1);
         return;
       }
-      
-      throw new Error('Failed to fetch suggestions');
     } catch (error) {
       console.error("Error fetching suggestions:", error);
       setHasError(true);
@@ -129,7 +148,7 @@ const Index = () => {
         }
         toast({
           title: "Demo Mode",
-          description: "Showing sample results due to API limitations",
+          description: `Showing sample results due to ${aiSearchEnabled ? 'AI API' : 'TMDB API'} limitations`,
           variant: "default",
         });
       }
@@ -247,7 +266,20 @@ const Index = () => {
 
   const handleSearch = useCallback((item?: AutocompleteItem) => {
     if (item) {
-      fetchMovieRecommendations(item.url, item);
+      if (aiSearchEnabled) {
+        // AI search mode - use existing recommendation API
+        fetchMovieRecommendations(item.url, item);
+      } else {
+        // TMDB mode - show trending content or navigate directly to details
+        if ((item as any).tmdb_id) {
+          const mediaType = item.url.includes('/movie/') ? 'movie' : 'tv';
+          navigate(`/details/${mediaType}/${(item as any).tmdb_id}`);
+          return;
+        } else {
+          // Fallback to trending content
+          fetchTrendingMovies();
+        }
+      }
       setSearchTerm(item.label);
       setShowSuggestions(false);
       setSelectedIndex(-1);
@@ -258,16 +290,60 @@ const Index = () => {
       const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
       if (allSuggestions.length > 0 && showSuggestions) {
         const selectedItem = selectedIndex >= 0 ? allSuggestions[selectedIndex] : allSuggestions[0];
-        fetchMovieRecommendations(selectedItem.url, selectedItem);
-        setSearchTerm(selectedItem.label);
-        setShowSuggestions(false);
-        setSelectedIndex(-1);
-        setSuggestions({});
-        setShouldShowDropdown(false);
-        searchRef.current?.blur();
+        handleSearch(selectedItem);
       }
     }
-  }, [suggestions, selectedIndex, showSuggestions]);
+  }, [suggestions, selectedIndex, showSuggestions, aiSearchEnabled, navigate]);
+
+  const fetchTrendingMovies = async () => {
+    setIsLoading(true);
+    try {
+      const trendingContent = await getTrendingContent();
+      setSelectedMovies(trendingContent);
+    } catch (error) {
+      console.error('Error fetching trending content:', error);
+      setHasError(true);
+      // Show mock data as fallback
+      const mockMovies: MovieData[] = [
+        {
+          id: "550",
+          title: "Fight Club",
+          poster: "/placeholder.svg",
+          year: "1999",
+          type: 'movie'
+        },
+        {
+          id: "13",
+          title: "Forrest Gump",
+          poster: "/placeholder.svg",
+          year: "1994",
+          type: 'movie'
+        },
+        {
+          id: "680",
+          title: "Pulp Fiction",
+          poster: "/placeholder.svg",
+          year: "1994",
+          type: 'movie'
+        },
+        {
+          id: "1399",
+          title: "Game of Thrones",
+          poster: "/placeholder.svg",
+          year: "2011",
+          type: 'tv'
+        }
+      ];
+      setSelectedMovies(mockMovies);
+      toast({
+        title: "Demo Mode",
+        description: "Showing sample trending content due to TMDB API limitations",
+        variant: "default",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleTagSelect = useCallback((tagUrl: string, tagName: string) => {
     const tagItem: AutocompleteItem = {
@@ -275,6 +351,8 @@ const Index = () => {
       label: tagName,
       url: tagUrl
     };
+    // Always use AI search behavior for tags, regardless of search mode
+    // Tags are meant to show curated recommendations
     fetchMovieRecommendations(tagUrl, tagItem);
     setSearchTerm(tagName);
     setShowSuggestions(false);
@@ -292,7 +370,16 @@ const Index = () => {
         description: "Searching for movie details...",
       });
 
-      // Search for TMDB ID using the movie title
+      if (!aiSearchEnabled) {
+        // In TMDB mode, the ID should already be a TMDB ID
+        const numericId = parseInt(movie.id);
+        if (!isNaN(numericId) && numericId > 0) {
+          navigate(`/details/${movie.type}/${numericId}`);
+          return;
+        }
+      }
+
+      // For AI search mode or fallback, search for TMDB ID using the movie title
       const tmdbId = await findTMDBId(movie.title, movie.type);
       
       if (tmdbId) {
@@ -319,7 +406,7 @@ const Index = () => {
         variant: "destructive",
       });
     }
-  }, [navigate, toast]);
+  }, [navigate, toast, aiSearchEnabled]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
@@ -394,13 +481,20 @@ const Index = () => {
           <div className="max-w-2xl mx-auto flex gap-2 items-center">
             <div className="flex-1 relative" ref={searchContainerRef} onKeyDown={handleKeyDown}>
               <PlaceholdersAndVanishInput
-                placeholders={[
+                placeholders={aiSearchEnabled ? [
                   "Search for Wonder Woman...",
                   "Find movies like Inception...",
                   "Discover TV shows like Breaking Bad...",
                   "Look for action movies...",
                   "Search for comedy series...",
                   "Find sci-fi recommendations..."
+                ] : [
+                  "Search Wonder Woman...",
+                  "Find Inception...",
+                  "Look for Breaking Bad...",
+                  "Search The Dark Knight...",
+                  "Find Game of Thrones...",
+                  "Look for Stranger Things..."
                 ]}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -693,7 +787,10 @@ const Index = () => {
             <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-muted-foreground mb-4">Start Your Discovery</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Search for any movie or TV show to get personalized recommendations and discover your next favorite watch.
+              {aiSearchEnabled 
+                ? "Search for any movie or TV show to get personalized recommendations and discover your next favorite watch."
+                : "Search for movies and TV shows to browse trending content and find detailed information."
+              }
             </p>
           </div>
         )}

@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import FeedbackFishComponent from "./components/FeedbackFish";
 import SplashCursor from "./components/SplashCursor";
 import BurgerMenu from "./components/BurgerMenu";
+import SearchToggle from "./components/SearchToggle";
 import { 
   isMobileDevice, 
   isAndroidDevice, 
@@ -23,6 +24,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [splashCursorEnabled, setSplashCursorEnabled] = useState(true);
+  const [aiSearchEnabled, setAiSearchEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -53,6 +55,10 @@ const App = () => {
     setSplashCursorEnabled(enabled);
   };
 
+  const handleToggleAISearch = (enabled: boolean) => {
+    setAiSearchEnabled(enabled);
+  };
+
   // Disable splash cursor on mobile devices for better performance
   const shouldShowSplashCursor = splashCursorEnabled && !isMobile;
 
@@ -62,14 +68,20 @@ const App = () => {
         <Toaster />
         <Sonner />
         {shouldShowSplashCursor && <SplashCursor />}
+        <SearchToggle
+          aiSearchEnabled={aiSearchEnabled}
+          onToggle={handleToggleAISearch}
+        />
         <BurgerMenu
           splashCursorEnabled={splashCursorEnabled}
           onToggleSplashCursor={handleToggleSplashCursor}
+          aiSearchEnabled={aiSearchEnabled}
+          onToggleAISearch={handleToggleAISearch}
         />
         <FeedbackFishComponent />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index aiSearchEnabled={aiSearchEnabled} />} />
             <Route path="/details/:type/:id" element={<Details />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

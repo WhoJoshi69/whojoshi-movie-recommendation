@@ -9,16 +9,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import { Menu, Sparkles } from "lucide-react";
+import { Menu, Sparkles, Brain, Search } from "lucide-react";
 
 interface BurgerMenuProps {
   splashCursorEnabled: boolean;
   onToggleSplashCursor: (enabled: boolean) => void;
+  aiSearchEnabled: boolean;
+  onToggleAISearch: (enabled: boolean) => void;
 }
 
 export default function BurgerMenu({
   splashCursorEnabled,
   onToggleSplashCursor,
+  aiSearchEnabled,
+  onToggleAISearch,
 }: BurgerMenuProps) {
   return (
     <div className="fixed top-4 right-4 z-[60]">
@@ -35,12 +39,33 @@ export default function BurgerMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="start" 
-          className="w-56 bg-white/95 backdrop-blur-md border-white/20"
+          className="w-64 bg-white/95 backdrop-blur-md border-white/20"
         >
+          <DropdownMenuLabel className="text-gray-800">
+            Search Settings
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem 
+            className="flex items-center justify-between cursor-pointer hover:bg-gray-100/50"
+            onClick={(e) => e.preventDefault()}
+          >
+            <div className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-blue-600" />
+              <div className="flex flex-col">
+                <span className="text-gray-800 text-sm font-medium">AI Search</span>
+                <span className="text-gray-500 text-xs">Find similar movies by plot</span>
+              </div>
+            </div>
+            <Switch
+              checked={aiSearchEnabled}
+              onCheckedChange={onToggleAISearch}
+              className="data-[state=checked]:bg-blue-600"
+            />
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-gray-800">
             Visual Effects
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
           <DropdownMenuItem 
             className="flex items-center justify-between cursor-pointer hover:bg-gray-100/50"
             onClick={(e) => e.preventDefault()}
