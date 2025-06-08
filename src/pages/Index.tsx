@@ -12,6 +12,7 @@ import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-van
 import { Github } from "lucide-react";
 import TagsDialog from "@/components/TagsDialog";
 import MetallicPaint from "@/blocks/Animations/MetallicPaint/MetallicPaint";
+import TextPressure from "@/blocks/TextAnimations/TextPressure/TextPressure";
 
 interface AutocompleteItem {
   id: string;
@@ -861,8 +862,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
             })()}
           </>
         ) : (
-          <div className="text-center py-20">
-            {/* MetallicPaint Animation */}
+          <div className="text-center py-20"> {/* MetallicPaint Animation */}
             {metallicImageData && (
               <div className="w-64 h-64 mx-auto mb-8 rounded-2xl overflow-hidden shadow-2xl">
                 <MetallicPaint 
@@ -878,6 +878,20 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                 />
               </div>
             )}
+            {/* TextPressure Animation */}
+            <div className="w-full max-w-lg mx-auto mb-8 min-h-[120px] flex items-center justify-center">
+              <TextPressure 
+                text="WhoJoshi"
+                textColor="#ffffff"
+                width={true}
+                weight={true}
+                italic={true}
+                flex={true}
+                scale={true}
+                minFontSize={48}
+                className="font-bold text-center"
+              />
+            </div>
             <h2 className="text-2xl font-bold text-muted-foreground mb-4">Start Your Discovery</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
               {aiSearchEnabled 
