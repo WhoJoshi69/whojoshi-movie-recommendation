@@ -11,7 +11,7 @@ A movie and TV show recommendation application frontend that helps you discover 
 - TMDB integration for comprehensive movie and TV show data
 - Separate sections for movies and TV shows
 - Clean, modern UI with dark/light theme support
-- Responsive design optimized for mobile and desktop
+- Responsive design optimized for mobile and desktopd
 
 ## Setup and Installation
 
