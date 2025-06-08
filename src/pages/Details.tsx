@@ -25,11 +25,25 @@ import {
   getTVShowDetails, 
   getSimilar, 
   getCredits,
+  getWatchProviders,
   getTMDBImageUrl,
   TMDBMovie,
   TMDBTVShow,
   TMDBSearchResult
 } from "@/lib/tmdb";
+
+interface StreamingProvider {
+  id: number;
+  name: string;
+  logo_path: string;
+  link?: string;
+}
+
+interface WatchProviders {
+  flatrate?: StreamingProvider[];
+  rent?: StreamingProvider[];
+  buy?: StreamingProvider[];
+}
 
 interface DetailsProps {}
 
@@ -42,6 +56,7 @@ const Details: React.FC<DetailsProps> = () => {
   const [tvDetails, setTVDetails] = useState<TMDBTVShow | null>(null);
   const [similar, setSimilar] = useState<TMDBSearchResult[]>([]);
   const [credits, setCredits] = useState<any>(null);
+  const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,14 +87,20 @@ const Details: React.FC<DetailsProps> = () => {
         setTVDetails(details);
       }
 
-      // Fetch similar content and credits in parallel
-      const [similarData, creditsData] = await Promise.all([
+      // Fetch similar content, credits, and watch providers in parallel
+      const [similarData, creditsData, watchProvidersData] = await Promise.all([
         getSimilar(tmdbId, mediaType),
-        getCredits(tmdbId, mediaType)
+        getCredits(tmdbId, mediaType),
+        getWatchProviders(tmdbId, mediaType).catch(() => null) // Don't fail if watch providers aren't available
       ]);
 
       setSimilar(similarData.slice(0, 12)); // Limit to 12 similar items
       setCredits(creditsData);
+      
+      // Set watch providers for US region (you can change this to other regions)
+      if (watchProvidersData?.results?.US) {
+        setWatchProviders(watchProvidersData.results.US);
+      }
 
     } catch (err) {
       console.error('Error fetching details:', err);
@@ -115,16 +136,55 @@ const Details: React.FC<DetailsProps> = () => {
     }
   };
 
-  const handleWatchNow = () => {
-    const watchUrl = mediaType === 'movie' 
-      ? `https://hexa.watch/watch/movie/${tmdbId}`
-      : `https://hexa.watch/watch/tv/${tmdbId}`;
-    
+  const handleWatchNow = (url: string) => {
     // Open in new tab with fullscreen-like experience
-    const newWindow = window.open(watchUrl, '_blank', 'noopener,noreferrer');
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
     if (newWindow) {
       newWindow.focus();
     }
+  };
+
+  // Get default streaming platforms
+  const getDefaultPlatforms = () => {
+    return [
+      {
+        id: 999,
+        name: "WhoJoshi server 1",
+        logo_path: "",
+        link: mediaType === 'movie' 
+          ? `https://hexa.watch/watch/movie/${tmdbId}`
+          : `https://hexa.watch/watch/tv/${tmdbId}`,
+        isDefault: true,
+        color: "from-purple-600 to-purple-700"
+      },
+      {
+        id: 998,
+        name: "WhoJoshi server 2",
+        logo_path: "",
+        link: mediaType === 'movie' 
+          ? `https://moviebay.cc/view/movie/${tmdbId}`
+          : `https://moviebay.cc/view/tv/${tmdbId}`,
+        isDefault: true,
+        color: "from-blue-600 to-blue-700"
+      }
+    ];
+  };
+
+  // Get all available streaming platforms
+  const getAllPlatforms = () => {
+    const defaultPlatforms = getDefaultPlatforms();
+    const officialPlatforms = [];
+
+    // Add official streaming platforms
+    if (watchProviders?.flatrate) {
+      officialPlatforms.push(...watchProviders.flatrate.map(provider => ({
+        ...provider,
+        isDefault: false,
+        link: `https://www.themoviedb.org/${mediaType}/${tmdbId}/watch` // TMDB watch page
+      })));
+    }
+
+    return [...defaultPlatforms, ...officialPlatforms];
   };
 
   if (isLoading) {
@@ -248,7 +308,7 @@ const Details: React.FC<DetailsProps> = () => {
                   <Button 
                     size="sm" 
                     className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    onClick={handleWatchNow}
+                    onClick={() => handleWatchNow(getDefaultPlatforms()[0].link)}
                   >
                     <Play className="w-4 h-4 mr-2 fill-current" />
                     Watch Now
@@ -380,26 +440,95 @@ const Details: React.FC<DetailsProps> = () => {
               )}
             </div>
 
-            {/* Watch Now Section */}
-            <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 rounded-xl p-4 md:p-6 border border-red-200 dark:border-red-800">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="text-center md:text-left">
-                  <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-1">
-                    Ready to watch?
-                  </h3>
-                  <p className="text-sm text-red-700 dark:text-red-300">
-                    Stream {title} now in high quality
-                  </p>
-                </div>
-                <Button 
-                  size="lg"
-                  className="w-full md:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 px-8 py-3"
-                  onClick={handleWatchNow}
-                >
-                  <Play className="w-5 h-5 mr-2 fill-current" />
-                  Watch Now
-                </Button>
+            {/* Streaming Platforms Section */}
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                  Where to watch
+                </h3>
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  Choose your preferred streaming platform
+                </p>
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {getAllPlatforms().map((platform: any) => (
+                  <Button
+                    key={platform.id}
+                    variant="outline"
+                    className={cn(
+                      "h-auto p-4 justify-start gap-3 transition-all duration-300 hover:scale-105",
+                      platform.isDefault 
+                        ? `bg-gradient-to-r ${platform.color} hover:${platform.color.replace('600', '700').replace('700', '800')} text-white border-none shadow-lg hover:shadow-xl`
+                        : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                    )}
+                    onClick={() => handleWatchNow(platform.link)}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      {platform.logo_path ? (
+                        <img
+                          src={getTMDBImageUrl(platform.logo_path, 'w92')}
+                          alt={platform.name}
+                          className="w-8 h-8 rounded object-cover"
+                        />
+                      ) : (
+                        <div className={cn(
+                          "w-8 h-8 rounded flex items-center justify-center",
+                          platform.isDefault 
+                            ? "bg-white/20" 
+                            : "bg-slate-200 dark:bg-slate-700"
+                        )}>
+                          <Play className="w-4 h-4" />
+                        </div>
+                      )}
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">{platform.name}</div>
+                        {platform.isDefault && (
+                          <div className={cn(
+                            "text-xs opacity-90",
+                            platform.isDefault ? "text-white" : "text-slate-500"
+                          )}>
+                            Free streaming
+                          </div>
+                        )}
+                      </div>
+                      <ExternalLink className="w-4 h-4 opacity-60" />
+                    </div>
+                  </Button>
+                ))}
+              </div>
+              
+              {watchProviders && (watchProviders.rent || watchProviders.buy) && (
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+                    Also available for rent or purchase:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[...(watchProviders.rent || []), ...(watchProviders.buy || [])].map((provider) => (
+                      <Button
+                        key={`${provider.id}-rent-buy`}
+                        variant="outline"
+                        size="sm"
+                        className="h-auto p-2 gap-2"
+                        onClick={() => handleWatchNow(`https://www.themoviedb.org/${mediaType}/${tmdbId}/watch`)}
+                      >
+                        {provider.logo_path ? (
+                          <img
+                            src={getTMDBImageUrl(provider.logo_path, 'w92')}
+                            alt={provider.name}
+                            className="w-5 h-5 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                            <Play className="w-3 h-3" />
+                          </div>
+                        )}
+                        <span className="text-xs">{provider.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* External Links */}

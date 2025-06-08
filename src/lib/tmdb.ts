@@ -207,3 +207,21 @@ export const getCredits = async (tmdbId: number, type: 'movie' | 'tv') => {
 
   return response.json();
 };
+
+// Get watch providers for a movie/TV show
+export const getWatchProviders = async (tmdbId: number, type: 'movie' | 'tv') => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('TMDB API key not configured');
+  }
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/${type}/${tmdbId}/watch/providers?api_key=${apiKey}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  return response.json();
+};
