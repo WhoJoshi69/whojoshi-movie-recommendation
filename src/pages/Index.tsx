@@ -56,39 +56,80 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Create image data for MetallicPaint component
+  // Create image data for MetallicPaint component using logo.png
   useEffect(() => {
-    const createLogoImageData = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const size = 800;
-      canvas.width = size;
-      canvas.height = size;
-
-      // Fill with white background
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, size, size);
-
-      // Draw the logo text
-      ctx.fillStyle = 'black';
-      ctx.font = 'bold 120px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+    const loadLogoImageData = () => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
       
-      // Draw "WJ" as a logo
-      ctx.fillText('WhoJoshi', size / 2, size / 2 - 60);
-      
-      // Draw subtitle
-      ctx.font = 'bold 40px Arial';
-      ctx.fillText('Find Your Next', size / 2, size / 2 + 60);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-      const imageData = ctx.getImageData(0, 0, size, size);
-      setMetallicImageData(imageData);
+        // Set canvas size to match image or use a standard size
+        const size = 800;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Fill with white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, size, size);
+
+        // Calculate dimensions to center the logo
+        const aspectRatio = img.width / img.height;
+        let drawWidth, drawHeight;
+        
+        if (aspectRatio > 1) {
+          // Landscape image
+          drawWidth = size * 0.8; // Use 80% of canvas width
+          drawHeight = drawWidth / aspectRatio;
+        } else {
+          // Portrait or square image
+          drawHeight = size * 0.8; // Use 80% of canvas height
+          drawWidth = drawHeight * aspectRatio;
+        }
+
+        const x = (size - drawWidth) / 2;
+        const y = (size - drawHeight) / 2;
+
+        // Draw the logo image
+        ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+        const imageData = ctx.getImageData(0, 0, size, size);
+        setMetallicImageData(imageData);
+      };
+
+      img.onerror = () => {
+        console.error('Failed to load logo.png, falling back to text');
+        // Fallback to text-based logo if image fails to load
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const size = 800;
+        canvas.width = size;
+        canvas.height = size;
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 120px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('WhoJoshi', size / 2, size / 2 - 60);
+        ctx.font = 'bold 40px Arial';
+        ctx.fillText('Find Your Next', size / 2, size / 2 + 60);
+
+        const imageData = ctx.getImageData(0, 0, size, size);
+        setMetallicImageData(imageData);
+      };
+
+      // Load the logo from the public directory
+      img.src = '/logo.png';
     };
 
-    createLogoImageData();
+    loadLogoImageData();
   }, []);
 
   // Close dropdown when clicking outside
@@ -827,11 +868,11 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                 <MetallicPaint 
                   imageData={metallicImageData}
                   params={{
-                    patternScale: 2,
-                    refraction: 0.015,
-                    edge: 1,
-                    patternBlur: 0.005,
-                    liquid: 0.07,
+                    patternScale: 2.5,
+                    refraction: 0,
+                    edge: 0,
+                    patternBlur: 0.05,
+                    liquid: 0,
                     speed: 0.3,
                   }}
                 />
