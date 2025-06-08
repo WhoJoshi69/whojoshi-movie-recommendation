@@ -8,7 +8,7 @@ const FeedbackFishComponent = () => {
       <FeedbackFish projectId="f8a40614c9bf8f">
         <Button
           size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-3"
+          className="bg-gray-700 hover:bg-gray-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-3"
           title="Send Feedback"
         >
           <Fish className="w-5 h-5" />
