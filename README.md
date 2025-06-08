@@ -1,6 +1,6 @@
-# Shadow Cinema Search
+# Shadow Cinema Search - Frontend
 
-A movie and TV show recommendation application that helps you discover your next favorite watch.
+A movie and TV show recommendation application frontend that helps you discover your next favorite watch.
 
 ## Features
 
@@ -21,7 +21,7 @@ A movie and TV show recommendation application that helps you discover your next
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd shadow-cinema-search
+cd shadow-cinema-search-frontend
 ```
 
 2. Install dependencies:
@@ -33,47 +33,27 @@ npm install
 
 The application uses environment variables to configure API endpoints:
 
-1. **Development**: Uses `.env` file with `VITE_API_BASE_URL=http://localhost:3001`
-2. **Production**: Uses `.env.production` file or environment variables
-
-#### Setting up for Production
-
-1. Create a `.env.production` file or set environment variables:
+1. **Development**: Copy `.env.example` to `.env.local` and configure:
 ```bash
-VITE_API_BASE_URL=https://your-domain.com
+cp .env.example .env.local
 ```
 
-2. Or if your API is served from the same domain, leave it empty:
+2. **Production**: Set the environment variable in your deployment platform:
 ```bash
-VITE_API_BASE_URL=
+VITE_API_BASE_URL=https://your-backend-deployment-url.vercel.app
 ```
 
 ### Running the Application
 
 #### Development
 
-You have two options to run the application:
-
-**Option 1: Run both server and client together (Recommended)**
-```bash
-npm run dev:full
-```
-
-This will start:
-- Proxy server on `http://localhost:3001`
-- React development server on `http://localhost:5173`
-
-**Option 2: Run server and client separately**
-
-1. Start the proxy server:
-```bash
-npm run server
-```
-
-2. In a new terminal, start the React development server:
+1. Make sure your backend is running (see backend-general directory)
+2. Start the React development server:
 ```bash
 npm run dev
 ```
+
+The frontend will be available at `http://localhost:5173`
 
 #### Production
 
@@ -82,50 +62,28 @@ npm run dev
 npm run build
 ```
 
-2. Deploy both the built React app and the Express server to your hosting platform.
+2. Deploy the built React app to your hosting platform (Vercel, Netlify, etc.)
 
-### Deployment Examples
+### Deployment
 
-#### Option 1: Same Domain Deployment (Recommended)
-Deploy both frontend and backend to the same domain:
-- Frontend: `https://your-domain.com`
-- Backend: `https://your-domain.com/api/*`
+#### Frontend Deployment Options
 
-Set `VITE_API_BASE_URL=` (empty) in production environment.
-
-#### Option 2: Separate Domain Deployment
-Deploy frontend and backend to different domains:
-- Frontend: `https://your-app.com`
-- Backend: `https://api.your-app.com`
-
-Set `VITE_API_BASE_URL=https://api.your-app.com` in production environment.
-
-#### Popular Hosting Platforms
-
-**Vercel/Netlify (Frontend) + Railway/Render (Backend)**
+**Vercel**
 ```bash
-# Frontend environment variable
-VITE_API_BASE_URL=https://your-backend.railway.app
+npm i -g vercel
+vercel --prod
 ```
 
-**Single Platform (e.g., Railway, Render)**
-```bash
-# If serving from same domain
-VITE_API_BASE_URL=
-```
-
-### API Endpoints
-
-The proxy server provides the following endpoints:
-
-- `GET /api/suggestions?term=<search_term>` - Get autocomplete suggestions
-- `GET /api/recommendations?url=<movie_url>` - Get movie/TV show recommendations
-- `GET /health` - Health check endpoint
-
-### Building for Production
-
+**Netlify**
 ```bash
 npm run build
+# Upload dist/ folder to Netlify
+```
+
+**Environment Variables for Production**
+Set `VITE_API_BASE_URL` to your deployed backend URL:
+```bash
+VITE_API_BASE_URL=https://your-backend.vercel.app
 ```
 
 ### Project Structure
@@ -134,30 +92,35 @@ npm run build
 ├── src/
 │   ├── components/ui/     # Reusable UI components
 │   ├── pages/            # Page components
-│   ├── lib/              # Utility functions
+│   ├── lib/              # Utility functions and API calls
 │   └── hooks/            # Custom React hooks
-├── server.js             # Express proxy server
 ├── public/               # Static assets
+├── .env.example          # Environment variables template
+├── .env.local            # Local development environment variables
 └── package.json          # Project dependencies and scripts
 ```
 
 ### Technologies Used
 
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui
-- **Backend**: Node.js, Express.js
 - **Styling**: Tailwind CSS with custom components
 - **Icons**: Lucide React
+- **State Management**: React Query for API state management
 
-### How It Works
+### API Integration
 
-1. The React frontend sends requests to the local Express proxy server
-2. The proxy server forwards requests to the bestsimilar.com API
-3. The proxy handles CORS issues and returns data to the frontend
-4. The frontend parses the response and displays movies/TV shows in separate sections
+The frontend communicates with a separate backend service. The API base URL is configured through environment variables:
 
-### Development Notes
+- **Development**: `http://localhost:3001` (default)
+- **Production**: Set via `VITE_API_BASE_URL` environment variable
 
-- The proxy server runs on port 3001
-- The React development server runs on port 5173
-- The application automatically detects TV shows vs movies using HTML parsing
-- Mock data is shown when the API is unavailable
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint
+
+### Backend
+
+The backend logic has been moved to a separate `backend-general` directory and is designed to be deployed as a serverless function. See the backend-general README for setup instructions.
