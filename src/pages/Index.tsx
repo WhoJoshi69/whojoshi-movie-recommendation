@@ -11,6 +11,7 @@ import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { Github } from "lucide-react";
 import TagsDialog from "@/components/TagsDialog";
+import MetallicPaint from "@/blocks/Animations/MetallicPaint/MetallicPaint";
 
 interface AutocompleteItem {
   id: string;
@@ -48,11 +49,47 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   const [hasError, setHasError] = useState(false);
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
+  const [metallicImageData, setMetallicImageData] = useState<ImageData | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Create image data for MetallicPaint component
+  useEffect(() => {
+    const createLogoImageData = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const size = 800;
+      canvas.width = size;
+      canvas.height = size;
+
+      // Fill with white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, size, size);
+
+      // Draw the logo text
+      ctx.fillStyle = 'black';
+      ctx.font = 'bold 120px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Draw "WJ" as a logo
+      ctx.fillText('WhoJoshi', size / 2, size / 2 - 60);
+      
+      // Draw subtitle
+      ctx.font = 'bold 40px Arial';
+      ctx.fillText('Find Your Next', size / 2, size / 2 + 60);
+
+      const imageData = ctx.getImageData(0, 0, size, size);
+      setMetallicImageData(imageData);
+    };
+
+    createLogoImageData();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -784,7 +821,22 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           </>
         ) : (
           <div className="text-center py-20">
-            <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
+            {/* MetallicPaint Animation */}
+            {metallicImageData && (
+              <div className="w-64 h-64 mx-auto mb-8 rounded-2xl overflow-hidden shadow-2xl">
+                <MetallicPaint 
+                  imageData={metallicImageData}
+                  params={{
+                    patternScale: 2,
+                    refraction: 0.015,
+                    edge: 1,
+                    patternBlur: 0.005,
+                    liquid: 0.07,
+                    speed: 0.3,
+                  }}
+                />
+              </div>
+            )}
             <h2 className="text-2xl font-bold text-muted-foreground mb-4">Start Your Discovery</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
               {aiSearchEnabled 
