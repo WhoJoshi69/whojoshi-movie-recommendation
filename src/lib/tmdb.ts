@@ -149,7 +149,7 @@ export const getTVShowDetails = async (tmdbId: number): Promise<TMDBTVShow> => {
 };
 
 // Search for a specific title to get TMDB ID
-export const findTMDBId = async (title: string, type: 'movie' | 'tv'): Promise<number | null> => {
+export const findTMDBId = async (title: string, type: 'movie' | 'tv', year?: string): Promise<number | null> => {
   try {
     const searchResults = await searchTMDB(title);
     
@@ -160,7 +160,24 @@ export const findTMDBId = async (title: string, type: 'movie' | 'tv'): Promise<n
       return null;
     }
 
-    // Return the first result (usually the most relevant)
+    // If year is provided, try to find a match with the same year
+    if (year) {
+      const yearNumber = parseInt(year);
+      if (!isNaN(yearNumber)) {
+        const yearMatch = filteredResults.find(result => {
+          const resultYear = type === 'movie' 
+            ? (result.release_date ? new Date(result.release_date).getFullYear() : null)
+            : (result.first_air_date ? new Date(result.first_air_date).getFullYear() : null);
+          return resultYear === yearNumber;
+        });
+        
+        if (yearMatch) {
+          return yearMatch.id;
+        }
+      }
+    }
+
+    // Return the first result (usually the most relevant) if no year match found
     return filteredResults[0].id;
   } catch (error) {
     console.error('Error finding TMDB ID:', error);

@@ -379,8 +379,8 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
         }
       }
 
-      // For AI search mode or fallback, search for TMDB ID using the movie title
-      const tmdbId = await findTMDBId(movie.title, movie.type);
+      // For AI search mode or fallback, search for TMDB ID using the movie title and year
+      const tmdbId = await findTMDBId(movie.title, movie.type, movie.year);
       
       if (tmdbId) {
         // Navigate to details page with TMDB ID
