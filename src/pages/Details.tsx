@@ -439,97 +439,108 @@ const Details: React.FC<DetailsProps> = () => {
                 </div>
               )}
             </div>
+{/* Streaming Platforms Section */}
+<div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800">
+  <div className="mb-4">
+    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
+      Where to watch
+    </h3>
+    <p className="text-sm text-slate-700 dark:text-slate-300">
+      Choose your preferred streaming platform
+    </p>
+  </div>
 
-            {/* Streaming Platforms Section */}
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/20 dark:to-gray-950/20 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                  Where to watch
-                </h3>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  Choose your preferred streaming platform
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {getAllPlatforms().map((platform: any) => (
-                  <Button
-                    key={platform.id}
-                    variant="outline"
-                    className={cn(
-                      "h-auto p-4 justify-start gap-3 transition-all duration-300 hover:scale-105",
-                      platform.isDefault 
-                        ? `bg-gradient-to-r ${platform.color} hover:${platform.color.replace('600', '700').replace('700', '800')} text-white border-none shadow-lg hover:shadow-xl`
-                        : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                    )}
-                    onClick={() => handleWatchNow(platform.link)}
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      {platform.logo_path ? (
-                        <img
-                          src={getTMDBImageUrl(platform.logo_path, 'w92')}
-                          alt={platform.name}
-                          className="w-8 h-8 rounded object-cover"
-                        />
-                      ) : (
-                        <div className={cn(
-                          "w-8 h-8 rounded flex items-center justify-center",
-                          platform.isDefault 
-                            ? "bg-white/20" 
-                            : "bg-slate-200 dark:bg-slate-700"
-                        )}>
-                          <Play className="w-4 h-4" />
-                        </div>
-                      )}
-                      <div className="flex-1 text-left">
-                        <div className="font-medium">{platform.name}</div>
-                        {platform.isDefault && (
-                          <div className={cn(
-                            "text-xs opacity-90",
-                            platform.isDefault ? "text-white" : "text-slate-500"
-                          )}>
-                            Free streaming
-                          </div>
-                        )}
-                      </div>
-                      <ExternalLink className="w-4 h-4 opacity-60" />
-                    </div>
-                  </Button>
-                ))}
-              </div>
-              
-              {watchProviders && (watchProviders.rent || watchProviders.buy) && (
-                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                    Also available for rent or purchase:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[...(watchProviders.rent || []), ...(watchProviders.buy || [])].map((provider) => (
-                      <Button
-                        key={`${provider.id}-rent-buy`}
-                        variant="outline"
-                        size="sm"
-                        className="h-auto p-2 gap-2"
-                        onClick={() => handleWatchNow(`https://www.themoviedb.org/${mediaType}/${tmdbId}/watch`)}
-                      >
-                        {provider.logo_path ? (
-                          <img
-                            src={getTMDBImageUrl(provider.logo_path, 'w92')}
-                            alt={provider.name}
-                            className="w-5 h-5 rounded object-cover"
-                          />
-                        ) : (
-                          <div className="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                            <Play className="w-3 h-3" />
-                          </div>
-                        )}
-                        <span className="text-xs">{provider.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
+  {/* Default (Full Card) Platforms */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+    {getAllPlatforms().filter(p => p.isDefault).map((platform: any) => (
+      <Button
+        key={platform.id}
+        variant="outline"
+        className={cn(
+          "h-auto p-4 justify-start gap-3 transition-all duration-300 hover:scale-105 text-left w-full flex items-center",
+          `bg-gradient-to-r ${platform.color} text-white border-none shadow-lg hover:shadow-xl`
+        )}
+        onClick={() => handleWatchNow(platform.link)}
+      >
+        <div className="flex items-center gap-3 w-full">
+          {platform.logo_path ? (
+            <img
+              src={getTMDBImageUrl(platform.logo_path, 'w92')}
+              alt={platform.name}
+              className="w-8 h-8 rounded object-cover bg-white"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
+              <Play className="w-4 h-4" />
             </div>
+          )}
+          <div className="flex-1">
+            <div className="font-medium truncate">{platform.name}</div>
+            <div className="text-xs opacity-90">Free streaming</div>
+          </div>
+          <ExternalLink className="w-4 h-4 opacity-60 shrink-0" />
+        </div>
+      </Button>
+    ))}
+  </div>
+
+  {/* Non-default (Icons Only) Platforms */}
+  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 justify-center">
+    {getAllPlatforms().filter(p => !p.isDefault).map((platform: any) => (
+      <button
+        key={platform.id}
+        onClick={() => handleWatchNow(platform.link)}
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:scale-105 transition-all duration-300 flex items-center justify-center"
+        title={platform.name}
+        aria-label={`Watch on ${platform.name}`}
+      >
+        {platform.logo_path ? (
+          <img
+            src={getTMDBImageUrl(platform.logo_path, 'w92')}
+            alt={platform.name}
+            className="w-8 h-8 object-contain"
+          />
+        ) : (
+          <Play className="w-5 h-5 text-slate-700 dark:text-slate-200" />
+        )}
+      </button>
+    ))}
+  </div>
+
+  {/* Rent or Buy */}
+  {watchProviders && (watchProviders.rent || watchProviders.buy) && (
+    <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+        Also available for rent or purchase:
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {[...(watchProviders.rent || []), ...(watchProviders.buy || [])].map((provider) => (
+          <Button
+            key={`${provider.id}-rent-buy`}
+            variant="outline"
+            size="sm"
+            className="h-auto p-2 gap-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+            onClick={() => handleWatchNow(`https://www.themoviedb.org/${mediaType}/${tmdbId}/watch`)}
+          >
+            {provider.logo_path ? (
+              <img
+                src={getTMDBImageUrl(provider.logo_path, 'w92')}
+                alt={provider.name}
+                className="w-5 h-5 rounded object-cover bg-white"
+              />
+            ) : (
+              <div className="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                <Play className="w-3 h-3" />
+              </div>
+            )}
+            <span className="text-xs truncate">{provider.name}</span>
+          </Button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
+
 
             {/* External Links */}
             <div className="flex gap-2">
