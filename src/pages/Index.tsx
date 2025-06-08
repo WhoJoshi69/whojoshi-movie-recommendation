@@ -35,6 +35,7 @@ const Index = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [hasError, setHasError] = useState(false);
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
+  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
   const searchRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -432,93 +433,154 @@ const Index = () => {
               
               return (
                 <>
-                  {/* Movies Section */}
-                  {moviesList.length > 0 && (
-                    <div className="mb-12">
-                      <div className="flex items-center gap-3 mb-6">
-                        <Film className="w-6 h-6 text-primary" />
-                        <h2 className="text-2xl font-bold">Movies ({moviesList.length})</h2>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        {moviesList.map((movie, index) => (
-                          <div
-                            key={`movie-${movie.id}-${index}`}
-                            className="group cursor-pointer transition-all duration-300 hover:scale-105"
-                          >
-                            <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
-                              {movie.poster ? (
-                                <img
-                                  src={movie.poster}
-                                  alt={movie.title}
-                                  className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.src = '/placeholder.svg';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                  <Film className="w-12 h-12" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="mt-3 px-1">
-                              <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                                {movie.title}
-                              </h3>
-                              {movie.year && (
-                                <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  {/* Toggle Buttons */}
+                  <div className="flex justify-center mb-8">
+                    <div className="bg-muted rounded-xl p-1 flex">
+                      <button
+                        onClick={() => setActiveTab('movies')}
+                        className={cn(
+                          "flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300",
+                          activeTab === 'movies'
+                            ? "bg-background text-foreground shadow-md"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <Film className="w-5 h-5" />
+                        Movies ({moviesList.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('tv')}
+                        className={cn(
+                          "flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300",
+                          activeTab === 'tv'
+                            ? "bg-background text-foreground shadow-md"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <Tv className="w-5 h-5" />
+                        TV Shows ({tvShowsList.length})
+                      </button>
                     </div>
-                  )}
-                  
-                  {/* TV Shows Section */}
-                  {tvShowsList.length > 0 && (
-                    <div className="mb-12">
-                      <div className="flex items-center gap-3 mb-6">
-                        <Tv className="w-6 h-6 text-primary" />
-                        <h2 className="text-2xl font-bold">TV Shows ({tvShowsList.length})</h2>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        {tvShowsList.map((movie, index) => (
-                          <div
-                            key={`tv-${movie.id}-${index}`}
-                            className="group cursor-pointer transition-all duration-300 hover:scale-105"
-                          >
-                            <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
-                              {movie.poster ? (
-                                <img
-                                  src={movie.poster}
-                                  alt={movie.title}
-                                  className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.src = '/placeholder.svg';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                  <Tv className="w-12 h-12" />
-                                </div>
-                              )}
+                  </div>
+
+                  {/* Content with smooth transitions */}
+                  <div className="relative overflow-hidden">
+                    {/* Movies Grid */}
+                    <div
+                      className={cn(
+                        "transition-all duration-500 ease-in-out",
+                        activeTab === 'movies'
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 translate-x-full absolute inset-0 pointer-events-none"
+                      )}
+                    >
+                      {moviesList.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                          {moviesList.map((movie, index) => (
+                            <div
+                              key={`movie-${movie.id}-${index}`}
+                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              style={{
+                                animationDelay: `${index * 50}ms`
+                              }}
+                            >
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                                {movie.poster ? (
+                                  <img
+                                    src={movie.poster}
+                                    alt={movie.title}
+                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      e.currentTarget.src = '/placeholder.svg';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                    <Film className="w-12 h-12" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="mt-3 px-1">
+                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                                  {movie.title}
+                                </h3>
+                                {movie.year && (
+                                  <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
+                                )}
+                              </div>
                             </div>
-                            <div className="mt-3 px-1">
-                              <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                                {movie.title}
-                              </h3>
-                              {movie.year && (
-                                <p className="text-xs text-muted-foreground mt-1">{movie.year}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-20">
+                          <Film className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
+                          <h2 className="text-2xl font-bold text-muted-foreground mb-4">No Movies Found</h2>
+                          <p className="text-muted-foreground">
+                            No movie recommendations available for this selection.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* TV Shows Grid */}
+                    <div
+                      className={cn(
+                        "transition-all duration-500 ease-in-out",
+                        activeTab === 'tv'
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 -translate-x-full absolute inset-0 pointer-events-none"
+                      )}
+                    >
+                      {tvShowsList.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                          {tvShowsList.map((show, index) => (
+                            <div
+                              key={`tv-${show.id}-${index}`}
+                              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+                              style={{
+                                animationDelay: `${index * 50}ms`
+                              }}
+                            >
+                              <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300">
+                                {show.poster ? (
+                                  <img
+                                    src={show.poster}
+                                    alt={show.title}
+                                    className="w-full h-full object-cover group-hover:brightness-110 transition-all duration-300"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      e.currentTarget.src = '/placeholder.svg';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                    <Tv className="w-12 h-12" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="mt-3 px-1">
+                                <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                                  {show.title}
+                                </h3>
+                                {show.year && (
+                                  <p className="text-xs text-muted-foreground mt-1">{show.year}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-20">
+                          <Tv className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
+                          <h2 className="text-2xl font-bold text-muted-foreground mb-4">No TV Shows Found</h2>
+                          <p className="text-muted-foreground">
+                            No TV show recommendations available for this selection.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </>
               );
             })()}
