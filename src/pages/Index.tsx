@@ -34,6 +34,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [hasError, setHasError] = useState(false);
+  const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   const searchRef = useRef<HTMLInputElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -83,7 +84,10 @@ const Index = () => {
         const data = await response.json();
         setSuggestions(data);
         const hasResults = (data.movie && data.movie.length > 0) || (data.tv && data.tv.length > 0);
-        setShowSuggestions(hasResults);
+        // Only show suggestions if we should show dropdown
+        if (shouldShowDropdown) {
+          setShowSuggestions(hasResults);
+        }
         setSelectedIndex(-1);
         return;
       }
@@ -109,7 +113,10 @@ const Index = () => {
       if (term.toLowerCase().includes('wonder')) {
         setSuggestions(mockSuggestions);
         const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0);
-        setShowSuggestions(hasResults);
+        // Only show suggestions if we should show dropdown
+        if (shouldShowDropdown) {
+          setShowSuggestions(hasResults);
+        }
         toast({
           title: "Demo Mode",
           description: "Showing sample results due to API limitations",
@@ -223,6 +230,10 @@ const Index = () => {
       setSearchTerm(item.label);
       setShowSuggestions(false);
       setSelectedIndex(-1);
+      // Clear suggestions to prevent dropdown from reopening on focus
+      setSuggestions({});
+      // Disable dropdown from showing automatically
+      setShouldShowDropdown(false);
       // Remove focus from input to prevent dropdown from reopening
       searchRef.current?.blur();
     } else {
@@ -234,6 +245,10 @@ const Index = () => {
         setSearchTerm(selectedItem.label);
         setShowSuggestions(false);
         setSelectedIndex(-1);
+        // Clear suggestions to prevent dropdown from reopening on focus
+        setSuggestions({});
+        // Disable dropdown from showing automatically
+        setShouldShowDropdown(false);
         // Remove focus from input to prevent dropdown from reopening
         searchRef.current?.blur();
       }
@@ -310,10 +325,16 @@ const Index = () => {
                 type="text"
                 placeholder="Search for movies or TV shows..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  // Re-enable dropdown when user starts typing
+                  if (!shouldShowDropdown) {
+                    setShouldShowDropdown(true);
+                  }
+                }}
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
-                  if (searchTerm.length > 1 && Object.keys(suggestions).length > 0) {
+                  if (searchTerm.length > 1 && Object.keys(suggestions).length > 0 && shouldShowDropdown) {
                     setShowSuggestions(true);
                   }
                 }}
