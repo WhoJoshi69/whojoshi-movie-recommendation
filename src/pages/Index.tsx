@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { API_ENDPOINTS } from "@/lib/api";
 import RotatingText from "@/blocks/TextAnimations/RotatingText/RotatingText";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
-
+import { Github } from "lucide-react";
 interface AutocompleteItem {
   id: string;
   label: string;
@@ -646,6 +646,34 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+
+
+<footer className="border-t border-border bg-background/50 backdrop-blur-sm">
+  <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6">
+    <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground">
+      <span>Built in India by</span>
+      <a
+        href="https://github.com/WhoJoshi69"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 hover:decoration-primary"
+      >
+        Darshit
+      </a>
+      <a
+        href="https://github.com/WhoJoshi69"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-foreground hover:text-primary transition-colors duration-200"
+      >
+        <Github className="w-4 h-4" />
+      </a>
+    </div>
+  </div>
+</footer>
+
     </div>
   );
 };

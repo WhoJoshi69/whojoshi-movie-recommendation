@@ -646,6 +646,34 @@ const IndexMobile = () => {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+<footer className="border-t border-border bg-background/50 backdrop-blur-sm">
+  <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6">
+    <div className="text-center">
+      <p className="text-sm text-muted-foreground">
+        Built in India by{" "}
+        <a
+          href="https://github.com/WhoJoshi69"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 hover:decoration-primary"
+        >
+          Darshit
+        </a>
+        {" • "}
+        <a
+          href="https://superintro.in/portfolio/darshitjoshi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-foreground hover:text-primary transition-colors duration-200 underline decoration-primary/30 hover:decoration-primary"
+        >
+          About Me
+        </a>
+      </p>
+    </div>
+  </div>
+</footer>
     </div>
   );
 };
