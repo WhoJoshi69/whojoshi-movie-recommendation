@@ -243,6 +243,24 @@ export const getWatchProviders = async (tmdbId: number, type: 'movie' | 'tv') =>
   return response.json();
 };
 
+// Get videos (trailers, teasers, etc.) for a movie/TV show
+export const getVideos = async (tmdbId: number, type: 'movie' | 'tv') => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('TMDB API key not configured');
+  }
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/${type}/${tmdbId}/videos?api_key=${apiKey}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 // TMDB autocomplete/search suggestions
 export const getTMDBSuggestions = async (query: string) => {
   const apiKey = getApiKey();

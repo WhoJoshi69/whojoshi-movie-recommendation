@@ -25,6 +25,7 @@ import {
   getTVShowDetails, 
   getCredits,
   getWatchProviders,
+  getVideos,
   getTMDBImageUrl,
   TMDBMovie,
   TMDBTVShow
@@ -56,6 +57,7 @@ const Details: React.FC<DetailsProps> = () => {
   const [similar, setSimilar] = useState<BestSimilarMovie[]>([]);
   const [credits, setCredits] = useState<any>(null);
   const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
+  const [videos, setVideos] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,11 +91,12 @@ const Details: React.FC<DetailsProps> = () => {
         currentTitle = details.name;
       }
 
-      // Fetch similar content, credits, and watch providers in parallel
-      const [similarData, creditsData, watchProvidersData] = await Promise.all([
+      // Fetch similar content, credits, watch providers, and videos in parallel
+      const [similarData, creditsData, watchProvidersData, videosData] = await Promise.all([
         getSimilarFromBestSimilar(tmdbId, mediaType, currentTitle),
         getCredits(tmdbId, mediaType),
-        getWatchProviders(tmdbId, mediaType).catch(() => null) // Don't fail if watch providers aren't available
+        getWatchProviders(tmdbId, mediaType).catch(() => null), // Don't fail if watch providers aren't available
+        getVideos(tmdbId, mediaType).catch(() => null) // Don't fail if videos aren't available
       ]);
 
       setSimilar(similarData.slice(0, 12)); // Limit to 12 similar items
@@ -102,6 +105,11 @@ const Details: React.FC<DetailsProps> = () => {
       // Set watch providers for US region (you can change this to other regions)
       if (watchProvidersData?.results?.US) {
         setWatchProviders(watchProvidersData.results.US);
+      }
+
+      // Set videos data
+      if (videosData?.results) {
+        setVideos(videosData.results);
       }
 
     } catch (err) {
@@ -144,6 +152,41 @@ const Details: React.FC<DetailsProps> = () => {
     if (newWindow) {
       newWindow.focus();
     }
+  };
+
+  const handleTrailerClick = () => {
+    if (!videos || videos.length === 0) return;
+    
+    // Find the best trailer (prefer official trailers, then teasers)
+    const trailer = videos.find((video: any) => 
+      video.type === 'Trailer' && video.site === 'YouTube' && video.official
+    ) || videos.find((video: any) => 
+      video.type === 'Trailer' && video.site === 'YouTube'
+    ) || videos.find((video: any) => 
+      video.type === 'Teaser' && video.site === 'YouTube'
+    ) || videos.find((video: any) => 
+      video.site === 'YouTube'
+    );
+
+    if (trailer) {
+      const youtubeUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+      window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Get the best trailer for display
+  const getBestTrailer = () => {
+    if (!videos || videos.length === 0) return null;
+    
+    return videos.find((video: any) => 
+      video.type === 'Trailer' && video.site === 'YouTube' && video.official
+    ) || videos.find((video: any) => 
+      video.type === 'Trailer' && video.site === 'YouTube'
+    ) || videos.find((video: any) => 
+      video.type === 'Teaser' && video.site === 'YouTube'
+    ) || videos.find((video: any) => 
+      video.site === 'YouTube'
+    );
   };
 
   // Get default streaming platforms
@@ -380,6 +423,20 @@ const Details: React.FC<DetailsProps> = () => {
                 {details.overview || 'No overview available.'}
               </p>
             </div>
+
+            {/* Trailer */}
+            {getBestTrailer() && (
+              <div>
+                <h2 className="text-xl font-semibold mb-3">Trailer</h2>
+                <Button 
+                  onClick={handleTrailerClick}
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-800 active:to-red-900 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 touch-manipulation min-h-[44px]"
+                >
+                  <Play className="w-4 h-4 mr-2 fill-current" />
+                  Watch Trailer
+                </Button>
+              </div>
+            )}
 
             {/* Cast */}
             {credits?.cast && credits.cast.length > 0 && (
