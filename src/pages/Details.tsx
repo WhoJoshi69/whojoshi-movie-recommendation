@@ -263,7 +263,7 @@ const Details: React.FC<DetailsProps> = () => {
           <div className="text-6xl mb-4">😞</div>
           <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={() => navigate('/')}>
+          <Button onClick={() => navigate('/', { state: { fromDetails: true } })}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Home
           </Button>
@@ -301,7 +301,7 @@ const Details: React.FC<DetailsProps> = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/', { state: { fromDetails: true } })}
             className="text-white hover:bg-white/20 active:bg-white/30 touch-manipulation min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

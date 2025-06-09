@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, Film, Tv, AlertCircle, Tag } from "lucide-react";
@@ -41,21 +41,157 @@ interface IndexProps {
 
 const Index = ({ aiSearchEnabled }: IndexProps) => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const location = useLocation();
+  
+  // State persistence keys
+  const STORAGE_KEYS = {
+    searchTerm: 'whojoshi_search_term',
+    selectedMovies: 'whojoshi_selected_movies',
+    activeTab: 'whojoshi_active_tab',
+    scrollPosition: 'whojoshi_scroll_position',
+    hasError: 'whojoshi_has_error'
+  };
+
+  // Initialize state with persisted values
+  const [searchTerm, setSearchTerm] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEYS.searchTerm) || "";
+    } catch {
+      return "";
+    }
+  });
+  
   const [suggestions, setSuggestions] = useState<AutocompleteResponse>({});
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedMovies, setSelectedMovies] = useState<MovieData[]>([]);
+  
+  const [selectedMovies, setSelectedMovies] = useState<MovieData[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEYS.selectedMovies);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [hasError, setHasError] = useState(false);
+  
+  const [hasError, setHasError] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEYS.hasError) === 'true';
+    } catch {
+      return false;
+    }
+  });
+  
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
-  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
+  
+  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEYS.activeTab);
+      return (stored as 'movies' | 'tv') || 'movies';
+    } catch {
+      return 'movies';
+    }
+  });
+  
   const [metallicImageData, setMetallicImageData] = useState<ImageData | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Persist state to sessionStorage
+  const persistState = useCallback(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.searchTerm, searchTerm);
+      sessionStorage.setItem(STORAGE_KEYS.selectedMovies, JSON.stringify(selectedMovies));
+      sessionStorage.setItem(STORAGE_KEYS.activeTab, activeTab);
+      sessionStorage.setItem(STORAGE_KEYS.hasError, hasError.toString());
+      sessionStorage.setItem(STORAGE_KEYS.scrollPosition, window.scrollY.toString());
+    } catch (error) {
+      console.warn('Failed to persist state:', error);
+    }
+  }, [searchTerm, selectedMovies, activeTab, hasError, STORAGE_KEYS]);
+
+  // Restore scroll position
+  const restoreScrollPosition = useCallback(() => {
+    try {
+      const savedScrollPosition = sessionStorage.getItem(STORAGE_KEYS.scrollPosition);
+      if (savedScrollPosition) {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        }, 100);
+      }
+    } catch (error) {
+      console.warn('Failed to restore scroll position:', error);
+    }
+  }, [STORAGE_KEYS.scrollPosition]);
+
+  // Persist state when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      persistState();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [persistState]);
+
+  // Restore scroll position when component mounts or when coming back from details
+  useEffect(() => {
+    // Check if we're coming back from a details page
+    const isComingFromDetails = location.state?.fromDetails;
+    if (isComingFromDetails || selectedMovies.length > 0) {
+      restoreScrollPosition();
+    }
+  }, [location.state, restoreScrollPosition, selectedMovies.length]);
+
+  // Wrapper functions to persist state when updating
+  const updateSelectedMovies = useCallback((movies: MovieData[]) => {
+    setSelectedMovies(movies);
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.selectedMovies, JSON.stringify(movies));
+    } catch (error) {
+      console.warn('Failed to persist selected movies:', error);
+    }
+  }, [STORAGE_KEYS.selectedMovies]);
+
+  const updateActiveTab = useCallback((tab: 'movies' | 'tv') => {
+    setActiveTab(tab);
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.activeTab, tab);
+    } catch (error) {
+      console.warn('Failed to persist active tab:', error);
+    }
+  }, [STORAGE_KEYS.activeTab]);
+
+  const updateSearchTerm = useCallback((term: string) => {
+    setSearchTerm(term);
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.searchTerm, term);
+    } catch (error) {
+      console.warn('Failed to persist search term:', error);
+    }
+  }, [STORAGE_KEYS.searchTerm]);
+
+  const updateHasError = useCallback((error: boolean) => {
+    setHasError(error);
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.hasError, error.toString());
+    } catch (error) {
+      console.warn('Failed to persist error state:', error);
+    }
+  }, [STORAGE_KEYS.hasError]);
+
+  // Persist state when key values change
+  useEffect(() => {
+    persistState();
+  }, [persistState]);
 
   // Create image data for MetallicPaint component using logo.png
   useEffect(() => {
@@ -131,7 +267,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
     };
 
     loadLogoImageData();
-  }, []);
+  }, [updateSearchTerm]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -170,7 +306,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
 
   const fetchSuggestions = async (term: string) => {
     try {
-      setHasError(false);
+      updateHasError(false);
       
       if (aiSearchEnabled) {
         // Use AI search (existing API)
@@ -203,7 +339,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
       }
     } catch (error) {
       console.error("Error fetching suggestions:", error);
-      setHasError(true);
+      updateHasError(true);
       setSuggestions({});
       setShowSuggestions(false);
       
@@ -237,7 +373,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   const fetchMovieRecommendations = async (url: string, selectedItem: AutocompleteItem) => {
     setIsLoading(true);
     try {
-      setHasError(false);
+      updateHasError(false);
       const response = await fetch(`${API_ENDPOINTS.recommendations}?url=${encodeURIComponent(url)}`);
       
       if (response.ok) {
@@ -257,7 +393,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
               type: item.type as 'movie' | 'tv'
             }));
             
-            setSelectedMovies(movies);
+            updateSelectedMovies(movies);
             return;
           }
         } else {
@@ -293,14 +429,14 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
             };
           }).filter(movie => movie.poster && movie.title);
 
-          setSelectedMovies(movies);
+          updateSelectedMovies(movies);
           return;
         }
       }
       
       throw new Error('Failed to fetch recommendations');
     } catch (error) {
-      setHasError(true);
+      updateHasError(true);
       // Show mock movie data for demonstration
       const mockMovies: MovieData[] = [
         {
@@ -332,7 +468,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           type: 'movie'
         }
       ];
-      setSelectedMovies(mockMovies);
+      updateSelectedMovies(mockMovies);
       toast({
         title: "Demo Mode",
         description: "Showing sample recommendations due to API limitations",
@@ -359,7 +495,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           fetchTrendingMovies();
         }
       }
-      setSearchTerm(item.label);
+      updateSearchTerm(item.label);
       setShowSuggestions(false);
       setSelectedIndex(-1);
       setSuggestions({});
@@ -372,16 +508,16 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
         handleSearch(selectedItem);
       }
     }
-  }, [suggestions, selectedIndex, showSuggestions, aiSearchEnabled, navigate]);
+  }, [suggestions, selectedIndex, showSuggestions, aiSearchEnabled, navigate, updateSearchTerm]);
 
   const fetchTrendingMovies = async () => {
     setIsLoading(true);
     try {
       const trendingContent = await getTrendingContent();
-      setSelectedMovies(trendingContent);
+      updateSelectedMovies(trendingContent);
     } catch (error) {
       console.error('Error fetching trending content:', error);
-      setHasError(true);
+      updateHasError(true);
       // Show mock data as fallback
       const mockMovies: MovieData[] = [
         {
@@ -413,7 +549,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           type: 'tv'
         }
       ];
-      setSelectedMovies(mockMovies);
+      updateSelectedMovies(mockMovies);
       toast({
         title: "Demo Mode",
         description: "Showing sample trending content due to TMDB API limitations",
@@ -433,7 +569,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
     // Always use AI search behavior for tags, regardless of search mode
     // Tags are meant to show curated recommendations
     fetchMovieRecommendations(tagUrl, tagItem);
-    setSearchTerm(tagName);
+    updateSearchTerm(tagName);
     setShowSuggestions(false);
     setSelectedIndex(-1);
     setSuggestions({});
@@ -443,6 +579,9 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
 
   const handleCardClick = useCallback(async (movie: MovieData) => {
     try {
+      // Persist current state before navigating
+      persistState();
+
       // Show loading state
       toast({
         title: "Loading...",
@@ -453,7 +592,9 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
         // In TMDB mode, the ID should already be a TMDB ID
         const numericId = parseInt(movie.id);
         if (!isNaN(numericId) && numericId > 0) {
-          navigate(`/details/${movie.type}/${numericId}`);
+          navigate(`/details/${movie.type}/${numericId}`, {
+            state: { fromIndex: true }
+          });
           return;
         }
       }
@@ -463,12 +604,16 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
       
       if (tmdbId) {
         // Navigate to details page with TMDB ID
-        navigate(`/details/${movie.type}/${tmdbId}`);
+        navigate(`/details/${movie.type}/${tmdbId}`, {
+          state: { fromIndex: true }
+        });
       } else {
         // Fallback: try to extract TMDB ID from the existing ID if it's numeric
         const numericId = parseInt(movie.id);
         if (!isNaN(numericId) && numericId > 0) {
-          navigate(`/details/${movie.type}/${numericId}`);
+          navigate(`/details/${movie.type}/${numericId}`, {
+            state: { fromIndex: true }
+          });
         } else {
           toast({
             title: "Not Found",
@@ -485,7 +630,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
         variant: "destructive",
       });
     }
-  }, [navigate, toast, aiSearchEnabled]);
+  }, [navigate, toast, aiSearchEnabled, persistState]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
@@ -576,7 +721,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                   "Look for Stranger Things..."
                 ]}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                  updateSearchTerm(e.target.value);
                   if (!shouldShowDropdown) {
                     setShouldShowDropdown(true);
                   }
@@ -713,7 +858,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                   <div className="flex justify-center mb-6 android-sm:mb-8">
                     <div className="bg-muted rounded-xl p-1 flex w-full max-w-md android-sm:w-auto">
                       <button
-                        onClick={() => setActiveTab('movies')}
+                        onClick={() => updateActiveTab('movies')}
                         className={cn(
                           "flex items-center justify-center gap-1 android-sm:gap-2 px-3 android-sm:px-6 py-2 android-sm:py-3 rounded-lg font-medium transition-all duration-300 flex-1 android-sm:flex-none touch-manipulation",
                           activeTab === 'movies'
@@ -725,7 +870,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                         <span className="text-sm android-sm:text-base">Movies ({moviesList.length})</span>
                       </button>
                       <button
-                        onClick={() => setActiveTab('tv')}
+                        onClick={() => updateActiveTab('tv')}
                         className={cn(
                           "flex items-center justify-center gap-1 android-sm:gap-2 px-3 android-sm:px-6 py-2 android-sm:py-3 rounded-lg font-medium transition-all duration-300 flex-1 android-sm:flex-none touch-manipulation",
                           activeTab === 'tv'
