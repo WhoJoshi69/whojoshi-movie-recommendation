@@ -1,18 +1,17 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-export function PlaceholdersAndVanishInput({
-  placeholders,
-  onChange,
-  onSubmit,
-}: {
+interface PlaceholdersAndVanishInputProps {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-}) {
+}
+
+export const PlaceholdersAndVanishInput = forwardRef<HTMLInputElement, PlaceholdersAndVanishInputProps>(
+  ({ placeholders, onChange, onSubmit }, ref) => {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,6 +46,15 @@ export function PlaceholdersAndVanishInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
+
+  // Forward the ref to the input element
+  useEffect(() => {
+    if (typeof ref === "function") {
+      ref(inputRef.current);
+    } else if (ref) {
+      (ref as React.MutableRefObject<HTMLInputElement | null>).current = inputRef.current;
+    }
+  }, [ref]);
 
   const draw = useCallback(() => {
     if (!inputRef.current) return;
@@ -274,3 +282,4 @@ export function PlaceholdersAndVanishInput({
     </form>
   );
 }
+);

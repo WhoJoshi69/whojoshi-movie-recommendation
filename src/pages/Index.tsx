@@ -705,6 +705,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           <div className="max-w-2xl mx-auto flex gap-2 items-center">
             <div className="flex-1 relative" ref={searchContainerRef} onKeyDown={handleKeyDown}>
               <PlaceholdersAndVanishInput
+                ref={searchRef}
                 placeholders={aiSearchEnabled ? [
                   "Search for Wonder Woman...",
                   "Find movies like Inception...",
