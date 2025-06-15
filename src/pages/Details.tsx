@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
   ArrowLeft, 
   Calendar, 
   Clock, 
@@ -45,6 +52,17 @@ interface WatchProviders {
   buy?: StreamingProvider[];
 }
 
+interface Episode {
+  id: number;
+  name: string;
+  overview: string;
+  episode_number: number;
+  still_path: string | null;
+  air_date: string;
+  vote_average: number;
+  runtime: number | null;
+}
+
 interface DetailsProps {}
 
 const Details: React.FC<DetailsProps> = () => {
@@ -58,6 +76,8 @@ const Details: React.FC<DetailsProps> = () => {
   const [credits, setCredits] = useState<any>(null);
   const [watchProviders, setWatchProviders] = useState<WatchProviders | null>(null);
   const [videos, setVideos] = useState<any>(null);
+  const [selectedSeason, setSelectedSeason] = useState<number>(1);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +94,36 @@ const Details: React.FC<DetailsProps> = () => {
     fetchDetails();
   }, [tmdbId, mediaType]);
 
+  useEffect(() => {
+    if (mediaType === 'tv' && tvDetails && selectedSeason) {
+      fetchSeasonEpisodes(selectedSeason);
+    }
+  }, [selectedSeason, tvDetails]);
+
+  const fetchSeasonEpisodes = async (seasonNumber: number) => {
+    try {
+      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+      if (!apiKey) {
+        console.warn('TMDB API key not found');
+        return;
+      }
+
+      const response = await fetch(
+        `https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNumber}?api_key=${apiKey}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch episodes: ${response.status}`);
+      }
+
+      const seasonData = await response.json();
+      setEpisodes(seasonData.episodes || []);
+    } catch (error) {
+      console.error('Error fetching episodes:', error);
+      setEpisodes([]);
+    }
+  };
+
   const fetchDetails = async () => {
     try {
       setIsLoading(true);
@@ -89,6 +139,8 @@ const Details: React.FC<DetailsProps> = () => {
         const details = await getTVShowDetails(tmdbId);
         setTVDetails(details);
         currentTitle = details.name;
+        // Set default season to 1 for TV shows
+        setSelectedSeason(1);
       }
 
       // Fetch similar content, credits, watch providers, and videos in parallel
@@ -174,7 +226,12 @@ const Details: React.FC<DetailsProps> = () => {
     }
   };
 
-  // Get the best trailer for display
+  const handleEpisodeWatch = (episode: Episode) => {
+    // Open episode in WhoJoshi server with season and episode parameters
+    const episodeUrl = `https://hexa.watch/watch/tv/${tmdbId}/${selectedSeason}/${episode.episode_number}`;
+    handleWatchNow(episodeUrl);
+  };
+
   const getBestTrailer = () => {
     if (!videos || videos.length === 0) return null;
     
@@ -189,7 +246,6 @@ const Details: React.FC<DetailsProps> = () => {
     );
   };
 
-  // Get default streaming platforms
   const getDefaultPlatforms = () => {
     return [
       {
@@ -215,7 +271,6 @@ const Details: React.FC<DetailsProps> = () => {
     ];
   };
 
-  // Get all available streaming platforms
   const getAllPlatforms = () => {
     const defaultPlatforms = getDefaultPlatforms();
     const officialPlatforms = [];
@@ -281,7 +336,7 @@ const Details: React.FC<DetailsProps> = () => {
     : (tvDetails as TMDBTVShow)?.first_air_date;
   const runtime = mediaType === 'movie' ? (movieDetails as TMDBMovie)?.runtime : null;
   const seasons = mediaType === 'tv' ? (tvDetails as TMDBTVShow)?.number_of_seasons : null;
-  const episodes = mediaType === 'tv' ? (tvDetails as TMDBTVShow)?.number_of_episodes : null;
+  const episodes_count = mediaType === 'tv' ? (tvDetails as TMDBTVShow)?.number_of_episodes : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -399,10 +454,10 @@ const Details: React.FC<DetailsProps> = () => {
                 </div>
               )}
               
-              {seasons && episodes && (
+              {seasons && episodes_count && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Tv className="w-4 h-4" />
-                  <span>{seasons} seasons, {episodes} episodes</span>
+                  <span>{seasons} seasons, {episodes_count} episodes</span>
                 </div>
               )}
             </div>
@@ -435,6 +490,100 @@ const Details: React.FC<DetailsProps> = () => {
                   <Play className="w-4 h-4 mr-2 fill-current" />
                   Watch Trailer
                 </Button>
+              </div>
+            )}
+
+            {/* TV Show Seasons and Episodes */}
+            {mediaType === 'tv' && tvDetails && tvDetails.seasons && tvDetails.seasons.length > 0 && (
+              <div>
+                <div className="flex items-center gap-4 mb-4">
+                  <h2 className="text-xl font-semibold">Episodes</h2>
+                  <Select value={selectedSeason.toString()} onValueChange={(value) => setSelectedSeason(parseInt(value))}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select season" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tvDetails.seasons
+                        .filter(season => season.season_number > 0) // Filter out specials (season 0)
+                        .map((season) => (
+                          <SelectItem key={season.id} value={season.season_number.toString()}>
+                            Season {season.season_number} ({season.episode_count} episodes)
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Episodes List */}
+                <div className="space-y-3">
+                  {episodes.map((episode) => (
+                    <Card key={episode.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="flex gap-4 p-4">
+                        {/* Episode Thumbnail */}
+                        <div className="w-32 h-18 flex-shrink-0 rounded overflow-hidden bg-muted">
+                          {episode.still_path ? (
+                            <img
+                              src={getTMDBImageUrl(episode.still_path, 'w300')}
+                              alt={episode.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Tv className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Episode Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-xs">
+                                  E{episode.episode_number}
+                                </Badge>
+                                {episode.vote_average > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                    <span className="text-xs text-muted-foreground">
+                                      {episode.vote_average.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )}
+                                {episode.runtime && (
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{episode.runtime}m</span>
+                                  </div>
+                                )}
+                              </div>
+                              <h3 className="font-semibold text-sm mb-1 line-clamp-1">
+                                {episode.name}
+                              </h3>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {episode.overview || 'No description available.'}
+                              </p>
+                              {episode.air_date && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Aired: {new Date(episode.air_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEpisodeWatch(episode)}
+                              className="flex-shrink-0 hover:bg-primary hover:text-primary-foreground"
+                            >
+                              <Play className="w-3 h-3 mr-1" />
+                              Watch
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -500,6 +649,7 @@ const Details: React.FC<DetailsProps> = () => {
                 </div>
               )}
             </div>
+
 {/* Streaming Platforms Section */}
 <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-4 md:p-6 border border-slate-200 dark:border-slate-800 !bg-gray-200">
   <div className="mb-4">
