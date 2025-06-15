@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,7 @@ import { Github } from "lucide-react";
 import TagsDialog from "@/components/TagsDialog";
 import MetallicPaint from "@/blocks/Animations/MetallicPaint/MetallicPaint";
 import TextPressure from "@/blocks/TextAnimations/TextPressure/TextPressure";
+import TrendingSection from "@/components/TrendingSection";
 
 interface AutocompleteItem {
   id: string;
@@ -87,7 +87,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>(() => {
+  const [activeTab, setActiveTab] = useState<'movies' | 'tv>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEYS.activeTab);
       return (stored as 'movies' | 'tv') || 'movies';
@@ -633,6 +633,31 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
     }
   }, [navigate, toast, aiSearchEnabled, persistState]);
 
+  const handleTrendingMovieClick = useCallback(async (movie: any) => {
+    try {
+      // Persist current state before navigating
+      persistState();
+
+      // Show loading state
+      toast({
+        title: "Loading...",
+        description: "Searching for movie details...",
+      });
+
+      // Navigate to details page with TMDB ID
+      navigate(`/details/movie/${movie.id}`, {
+        state: { fromIndex: true }
+      });
+    } catch (error) {
+      console.error('Error navigating to movie details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load movie details. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [navigate, toast, persistState]);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     const allSuggestions = [...(suggestions.movie || []), ...(suggestions.tv || []), ...(suggestions.tag || [])];
     if (!showSuggestions || allSuggestions.length === 0) {
@@ -1050,6 +1075,8 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           </div>
         )}
       </div>
+      {/* Trending Section */}
+      <TrendingSection onMovieClick={handleTrendingMovieClick} />
       {/* Footer */}
       <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6">

@@ -352,3 +352,69 @@ export const getTrendingContent = async () => {
 
   return [...transformedMovies, ...transformedTV];
 };
+
+// Get popular/trending movies
+export const getPopularMovies = async (): Promise<TMDBSearchResult[]> => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('TMDB API key not configured');
+  }
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/popular?api_key=${apiKey}&page=1`
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.results.map((movie: any) => ({
+    ...movie,
+    media_type: 'movie'
+  }));
+};
+
+// Get upcoming movies
+export const getUpcomingMovies = async (): Promise<TMDBSearchResult[]> => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('TMDB API key not configured');
+  }
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/upcoming?api_key=${apiKey}&page=1`
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.results.map((movie: any) => ({
+    ...movie,
+    media_type: 'movie'
+  }));
+};
+
+// Get now playing movies
+export const getNowPlayingMovies = async (): Promise<TMDBSearchResult[]> => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('TMDB API key not configured');
+  }
+
+  const response = await fetch(
+    `${TMDB_BASE_URL}/movie/now_playing?api_key=${apiKey}&page=1`
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.results.map((movie: any) => ({
+    ...movie,
+    media_type: 'movie'
+  }));
+};
