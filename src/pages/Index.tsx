@@ -86,7 +86,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>(() => {
+  const [activeTab, setActiveTab] = useState<'movies' | 'tv>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEYS.activeTab);
       return (stored as 'movies' | 'tv') || 'movies';
@@ -896,7 +896,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                       )}
                     >
                       {moviesList.length > 0 ? (
-                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                           {moviesList.map((movie, index) => (
                             <div
                               key={`movie-${movie.id}-${index}`}
@@ -944,7 +944,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                         </div>
                       )}
                     </div>
-                    {/* TV Shows Grid - Updated to match movies grid */}
+                    {/* TV Shows Grid - Smaller grid to match original movies layout */}
                     <div
                       className={cn(
                         "transition-all duration-500 ease-in-out",
@@ -954,7 +954,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                       )}
                     >
                       {tvShowsList.length > 0 ? (
-                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                           {tvShowsList.map((show, index) => (
                             <div
                               key={`tv-${show.id}-${index}`}
