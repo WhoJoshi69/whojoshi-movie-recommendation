@@ -356,7 +356,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
       
       if (term.toLowerCase().includes('wonder')) {
         setSuggestions(mockSuggestions);
-        const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0) || (mockSuggestions.tag && mockSuggestions.tag.length > 0);
+        const hasResults = (mockSuggestions.movie && mockSuggestions.movie.length > 0) || (mockSuggestions.tv && mockSuggestions.tv.length > 0);
         // Only show suggestions if we should show dropdown
         if (shouldShowDropdown) {
           setShowSuggestions(hasResults);
@@ -840,7 +840,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           )}
         </div>
       </div>
-      {/* Main Content ... unchanged ... */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6 android-sm:py-8">
         {isLoading ? (
           <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
@@ -896,7 +896,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                       )}
                     >
                       {moviesList.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                        <div className="grid grid-cols-2 android-sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 android-sm:gap-4 lg:gap-6">
                           {moviesList.map((movie, index) => (
                             <div
                               key={`movie-${movie.id}-${index}`}
@@ -944,7 +944,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
                         </div>
                       )}
                     </div>
-                    {/* TV Shows Grid */}
+                    {/* TV Shows Grid - Updated to match movies grid */}
                     <div
                       className={cn(
                         "transition-all duration-500 ease-in-out",
@@ -1008,7 +1008,8 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
             })()}
           </>
         ) : (
-          <div className="text-center py-20"> {/* MetallicPaint Animation */}
+          <div className="text-center py-20">
+            {/* MetallicPaint Animation */}
             {metallicImageData && (
               <div className="w-64 h-64 mx-auto mb-8 rounded-2xl overflow-hidden shadow-2xl">
                 <MetallicPaint 
@@ -1048,7 +1049,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
           </div>
         )}
       </div>
-      {/* Footer ... unchanged ... */}
+      {/* Footer */}
       <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-3 android-sm:px-4 py-6">
           <div className="flex justify-center items-center gap-2 text-sm text-muted-foreground">
