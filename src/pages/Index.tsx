@@ -87,7 +87,7 @@ const Index = ({ aiSearchEnabled }: IndexProps) => {
   
   const [shouldShowDropdown, setShouldShowDropdown] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'movies' | 'tv>(() => {
+  const [activeTab, setActiveTab] = useState<'movies' | 'tv'>(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEYS.activeTab);
       return (stored as 'movies' | 'tv') || 'movies';
