@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import SplashCursor from "./components/SplashCursor";
 import BurgerMenu from "./components/BurgerMenu";
 import SplashCursorWelcome from "./components/SplashCursorWelcome";
+import SearchModeWelcome from "./components/SearchModeWelcome";
 import { 
   isMobileDevice, 
   isAndroidDevice, 
@@ -31,12 +32,29 @@ const App = () => {
       return false;
     }
   });
-  const [aiSearchEnabled, setAiSearchEnabled] = useState(true);
+  const [aiSearchEnabled, setAiSearchEnabled] = useState(() => {
+    // Load AI search preference from localStorage, default to true
+    try {
+      const saved = localStorage.getItem('whojoshi_ai_search_enabled');
+      return saved ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
   const [isMobile, setIsMobile] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(() => {
     // Show welcome popup if user hasn't made a choice yet
     try {
       const hasChosenBefore = localStorage.getItem('whojoshi_splash_cursor_choice_made');
+      return !hasChosenBefore;
+    } catch {
+      return true;
+    }
+  });
+  const [showSearchModePopup, setShowSearchModePopup] = useState(() => {
+    // Show search mode popup if user hasn't made a choice yet
+    try {
+      const hasChosenBefore = localStorage.getItem('whojoshi_search_mode_choice_made');
       return !hasChosenBefore;
     } catch {
       return true;
@@ -79,6 +97,10 @@ const App = () => {
   const handleWelcomeChoice = (enabled: boolean) => {
     setSplashCursorEnabled(enabled);
     setShowWelcomePopup(false);
+    // After splash cursor choice, show search mode popup (but only if user hasn't chosen before)
+    if (showSearchModePopup) {
+      setShowSearchModePopup(true);
+    }
     try {
       localStorage.setItem('whojoshi_splash_cursor_enabled', JSON.stringify(enabled));
       localStorage.setItem('whojoshi_splash_cursor_choice_made', 'true');
@@ -87,8 +109,24 @@ const App = () => {
     }
   };
 
+  const handleSearchModeChoice = (aiEnabled: boolean) => {
+    setAiSearchEnabled(aiEnabled);
+    setShowSearchModePopup(false);
+    try {
+      localStorage.setItem('whojoshi_ai_search_enabled', JSON.stringify(aiEnabled));
+      localStorage.setItem('whojoshi_search_mode_choice_made', 'true');
+    } catch (error) {
+      console.warn('Failed to save search mode preference:', error);
+    }
+  };
+
   const handleToggleAISearch = (enabled: boolean) => {
     setAiSearchEnabled(enabled);
+    try {
+      localStorage.setItem('whojoshi_ai_search_enabled', JSON.stringify(enabled));
+    } catch (error) {
+      console.warn('Failed to save AI search preference:', error);
+    }
   };
 
   // Disable splash cursor on mobile devices for better performance
@@ -113,6 +151,11 @@ const App = () => {
             onChoice={handleWelcomeChoice}
           />
         )}
+        {/* Search mode popup - shows after splash cursor choice */}
+        <SearchModeWelcome
+          isOpen={showSearchModePopup && !showWelcomePopup}
+          onChoice={handleSearchModeChoice}
+        />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index aiSearchEnabled={aiSearchEnabled} onToggleAISearch={handleToggleAISearch} />} />

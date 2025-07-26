@@ -15,7 +15,10 @@ interface SplashCursorWelcomeProps {
   onChoice: (enabled: boolean) => void;
 }
 
-export default function SplashCursorWelcome({ isOpen, onChoice }: SplashCursorWelcomeProps) {
+export default function SplashCursorWelcome({
+  isOpen,
+  onChoice,
+}: SplashCursorWelcomeProps) {
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-gradient-to-br from-background to-muted/20 border-2 border-primary/20">
@@ -31,11 +34,13 @@ export default function SplashCursorWelcome({ isOpen, onChoice }: SplashCursorWe
               Would you like to enable our interactive splash cursor effect?
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>Creates beautiful visual effects as you move your cursor</span>
+              <span>
+                Creates beautiful visual effects as you move your cursor
+              </span>
             </div>
           </DialogDescription>
         </DialogHeader>
-        
+
         <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="outline"
@@ -52,7 +57,7 @@ export default function SplashCursorWelcome({ isOpen, onChoice }: SplashCursorWe
             Yes, enable effects!
           </Button>
         </DialogFooter>
-        
+
         <div className="text-xs text-center text-muted-foreground mt-2">
           You can change this anytime in the menu
         </div>
