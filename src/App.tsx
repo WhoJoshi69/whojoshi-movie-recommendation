@@ -9,6 +9,7 @@ import Details from "./pages/Details";
 import NotFound from "./pages/NotFound";
 import SplashCursor from "./components/SplashCursor";
 import BurgerMenu from "./components/BurgerMenu";
+import SplashCursorWelcome from "./components/SplashCursorWelcome";
 import { 
   isMobileDevice, 
   isAndroidDevice, 
@@ -21,9 +22,26 @@ import "./styles/mobile.css";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [splashCursorEnabled, setSplashCursorEnabled] = useState(true);
+  const [splashCursorEnabled, setSplashCursorEnabled] = useState(() => {
+    // Don't show splash cursor by default, let user choose
+    try {
+      const saved = localStorage.getItem('whojoshi_splash_cursor_enabled');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
   const [aiSearchEnabled, setAiSearchEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(() => {
+    // Show welcome popup if user hasn't made a choice yet
+    try {
+      const hasChosenBefore = localStorage.getItem('whojoshi_splash_cursor_choice_made');
+      return !hasChosenBefore;
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     // Detect mobile device
@@ -51,6 +69,22 @@ const App = () => {
 
   const handleToggleSplashCursor = (enabled: boolean) => {
     setSplashCursorEnabled(enabled);
+    try {
+      localStorage.setItem('whojoshi_splash_cursor_enabled', JSON.stringify(enabled));
+    } catch (error) {
+      console.warn('Failed to save splash cursor preference:', error);
+    }
+  };
+
+  const handleWelcomeChoice = (enabled: boolean) => {
+    setSplashCursorEnabled(enabled);
+    setShowWelcomePopup(false);
+    try {
+      localStorage.setItem('whojoshi_splash_cursor_enabled', JSON.stringify(enabled));
+      localStorage.setItem('whojoshi_splash_cursor_choice_made', 'true');
+    } catch (error) {
+      console.warn('Failed to save splash cursor preference:', error);
+    }
   };
 
   const handleToggleAISearch = (enabled: boolean) => {
@@ -72,6 +106,13 @@ const App = () => {
           aiSearchEnabled={aiSearchEnabled}
           onToggleAISearch={handleToggleAISearch}
         />
+        {/* Welcome popup for first-time visitors (only on desktop) */}
+        {!isMobile && (
+          <SplashCursorWelcome
+            isOpen={showWelcomePopup}
+            onChoice={handleWelcomeChoice}
+          />
+        )}
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index aiSearchEnabled={aiSearchEnabled} onToggleAISearch={handleToggleAISearch} />} />
