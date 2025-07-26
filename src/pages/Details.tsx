@@ -392,7 +392,7 @@ const Details: React.FC<DetailsProps> = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-75 ease-out"
           style={{
             backgroundImage: details.backdrop_path
-              ? `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url(${getTMDBImageUrl(
+              ? `linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url(${getTMDBImageUrl(
                   details.backdrop_path,
                   "w1280"
                 )})`
@@ -400,7 +400,7 @@ const Details: React.FC<DetailsProps> = () => {
             transform: `scale(${zoomScale})`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/20 to-transparent" />
 
         {/* Navigation */}
         <div className="relative z-10 p-3 android-sm:p-4 md:p-8">
