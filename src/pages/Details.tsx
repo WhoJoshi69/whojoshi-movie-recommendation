@@ -429,7 +429,7 @@ const Details: React.FC<DetailsProps> = () => {
                 {mediaType === "movie" ? "Movie" : "TV Show"}
               </span>
             </div>
-            <h1 className="text-2xl android-sm:text-3xl md:text-5xl font-bold text-white mb-2 line-clamp-2">
+            <h1 className="text-2xl font-bold text-white mb-2 line-clamp-2">
               {title}
             </h1>
             {details.tagline && (
