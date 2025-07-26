@@ -16,6 +16,7 @@ import TextPressure from "@/blocks/TextAnimations/TextPressure/TextPressure";
 import TrendingSection from "@/components/TrendingSection";
 import FeedbackFishComponent from "@/components/FeedbackFish";
 import SearchToggle from "@/components/SearchToggle";
+import Aurora from "@/components/Aurora";
 
 interface AutocompleteItem {
   id: string;
@@ -802,19 +803,31 @@ const Index = ({ aiSearchEnabled, onToggleAISearch }: IndexProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground touch-manipulation">
-      {/* Feedback and Search Toggle - Only visible on home page */}
-      <FeedbackFishComponent />
-      <SearchToggle
-        aiSearchEnabled={aiSearchEnabled}
-        onToggle={onToggleAISearch}
-      />
+    <div className="min-h-screen bg-background text-foreground touch-manipulation relative">
+      {/* Aurora Background */}
+      <div className="fixed inset-0 z-0">
+        <Aurora
+          colorStops={["#1a1a2e", "#16213e", "#0f3460"]}
+          amplitude={0.8}
+          blend={0.6}
+          speed={0.5}
+        />
+      </div>
+      
+      {/* Content overlay */}
+      <div className="relative z-10">
+        {/* Feedback and Search Toggle - Only visible on home page */}
+        <FeedbackFishComponent />
+        <SearchToggle
+          aiSearchEnabled={aiSearchEnabled}
+          onToggle={onToggleAISearch}
+        />
 
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
         <div className="max-w-4xl mx-auto px-3 android-sm:px-4 py-4 android-sm:py-6">
           <div className="text-center mb-6 android-sm:mb-8">
-            <h1 className="text-2xl android-sm:text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h1 className="text-2xl android-sm:text-3xl font-bold mb-2 text-white drop-shadow-lg">
               WhoJoshi Recommendations
             </h1>
             <p className="text-sm android-sm:text-base text-muted-foreground px-2">
@@ -1265,6 +1278,7 @@ const Index = ({ aiSearchEnabled, onToggleAISearch }: IndexProps) => {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 };
