@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,6 +82,9 @@ const Details: React.FC<DetailsProps> = () => {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const tmdbId = parseInt(id || "0");
   const mediaType = type as "movie" | "tv";
@@ -105,6 +108,16 @@ const Details: React.FC<DetailsProps> = () => {
       fetchSeasonEpisodes(selectedSeason);
     }
   }, [selectedSeason, tvDetails]);
+
+  // Scroll effect for backdrop zoom
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const fetchSeasonEpisodes = async (seasonNumber: number) => {
     try {
@@ -365,20 +378,28 @@ const Details: React.FC<DetailsProps> = () => {
   const episodes_count =
     mediaType === "tv" ? (tvDetails as TMDBTVShow)?.number_of_episodes : null;
 
+  // Calculate zoom effect based on scroll
+  const zoomScale = Math.min(1 + scrollY * 0.0005, 1.2); // Max zoom of 1.2x
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div
-        className="relative h-[50vh] md:h-[60vh] bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: details.backdrop_path
-            ? `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url(${getTMDBImageUrl(
-                details.backdrop_path,
-                "w1280"
-              )})`
-            : "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%)",
-        }}
+        ref={heroRef}
+        className="relative h-[50vh] md:h-[60vh] overflow-hidden"
       >
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-75 ease-out"
+          style={{
+            backgroundImage: details.backdrop_path
+              ? `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url(${getTMDBImageUrl(
+                  details.backdrop_path,
+                  "w1280"
+                )})`
+              : "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.8) 100%)",
+            transform: `scale(${zoomScale})`,
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
 
         {/* Navigation */}
