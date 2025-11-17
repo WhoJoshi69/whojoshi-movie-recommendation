@@ -281,8 +281,8 @@ const Details: React.FC<DetailsProps> = () => {
         logo_path: "",
         link:
           mediaType === "movie"
-            ? `https://fmovies.cat/watch/movie/${tmdbId}`
-            : `https://fmovies.cat/watch/tv/${tmdbId}`,
+            ? `https://www.cinezo.net/watch/movie/${tmdbId}`
+            : `https://www.cinezo.net/watch/tv/${tmdbId}`,
         isDefault: true,
         color: "from-purple-600 to-purple-700",
       },
@@ -292,8 +292,8 @@ const Details: React.FC<DetailsProps> = () => {
         logo_path: "",
         link:
           mediaType === "movie"
-            ? `https://moviebay.cc/view/movie/${tmdbId}`
-            : `https://moviebay.cc/view/tv/${tmdbId}`,
+            ? `https://www.cinezo.net/view/movie/${tmdbId}`
+            : `https://www.cinezo.net/view/tv/${tmdbId}`,
         isDefault: true,
         color: "from-blue-600 to-blue-700",
       },
