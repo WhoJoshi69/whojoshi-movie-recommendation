@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Details from "./pages/Details";
 import NotFound from "./pages/NotFound";
+import PasswordGate from "./components/PasswordGate";
 import SplashCursor from "./components/SplashCursor";
 import BurgerMenu from "./components/BurgerMenu";
 import SplashCursorWelcome from "./components/SplashCursorWelcome";
@@ -133,6 +134,7 @@ const App = () => {
   const shouldShowSplashCursor = splashCursorEnabled && !isMobile;
 
   return (
+    <PasswordGate>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -166,6 +168,7 @@ const App = () => {
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
+    </PasswordGate>
   );
 };
 
